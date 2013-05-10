@@ -1,7 +1,8 @@
 package com.tenko.utils;
 
 public class Validator {
-
+	
+	//I'm an idiot for making this function.
 	public static boolean validIP(String ip) {
 		int count = 0;
 		for(char c : ip.toCharArray()){
@@ -16,7 +17,6 @@ public class Validator {
 		if(segments.length != 4){
 			return false;
 		}
-		
 		
 		for(String s : segments){
 			if(s.length() > 3 || s.length() < 1) return false;
