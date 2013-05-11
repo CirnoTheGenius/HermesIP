@@ -1,13 +1,13 @@
-name: HermesIP
+name: FriendlyWall
 author: Tsunko
 version: 0.1
-main: com.tenko.HermesIP
+main: com.tenko.FriendlyWall
 
 commands:
-    hreload:
+    fwreload:
         usage: /hreload
         description: Reloads the config.
-    ipban:
+    banip:
         usage: /ipban [ip]
         description: Bans the designated IP.
     pardonip:
@@ -16,3 +16,8 @@ commands:
     iplist:
         usage: /iplist
         description: Lists all currently banned IPs and range IP bans.
+
+permissions:
+    friendlywall.ban:
+        description: Allows the user to use all of the features.
+        default: op
