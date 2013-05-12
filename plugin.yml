@@ -16,8 +16,3 @@ commands:
     iplist:
         usage: /iplist
         description: Lists all currently banned IPs and range IP bans.
-
-permissions:
-    friendlywall.ban:
-        description: Allows the user to use all of the features.
-        default: op

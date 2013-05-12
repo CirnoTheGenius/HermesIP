@@ -18,7 +18,7 @@ public class CommanderCirno implements CommandExecutor {
 
 	@Override
 	public boolean onCommand(CommandSender cs, Command c, String l, String[] args){
-		if((cs.hasPermission("friendlywall.ban") || cs.isOp()) && cs.equals(Bukkit.getConsoleSender())){
+		if(cs.equals(Bukkit.getConsoleSender())){
 			if(c.getName().equalsIgnoreCase("fwreload")){
 				try {
 					FriendlyWall.getPlugin().getConfig().load(new File(FriendlyWall.getPlugin().getDataFolder(), "config.yml"));
@@ -59,9 +59,21 @@ public class CommanderCirno implements CommandExecutor {
 				bans.add(args[0]);
 				fw.getConfig().set("Bans", bans);
 				fw.saveConfig();
+				
+				try {
+					FriendlyWall.getPlugin().getConfig().load(new File(FriendlyWall.getPlugin().getDataFolder(), "config.yml"));
+				} catch (FileNotFoundException e){
+					cs.sendMessage(ChatColor.RED + "[FriendlyWall] The configuration file was not found!");
+					e.printStackTrace();
+				} catch (IOException e) {
+					cs.sendMessage(ChatColor.RED + "[FriendlyWall] There was an error while reading the file!");
+					e.printStackTrace();
+				} catch (InvalidConfigurationException e) {
+					cs.sendMessage(ChatColor.RED + "[FriendlyWall] The configuration has invalid settings!");
+					e.printStackTrace();
+				}
+				
 				cs.sendMessage(ChatColor.BLUE + "[FriendlyWall] Banned IP " + ChatColor.YELLOW + args[0]);
-				//Add another layer of security, just in case this plugin breaks.
-				Bukkit.getServer().banIP(args[0]);
 				return true;
 			}
 			
@@ -76,8 +88,6 @@ public class CommanderCirno implements CommandExecutor {
 					} else {
 						cs.sendMessage(ChatColor.RED + "[FriendlyWall] We somehow failed to pardon the IP!");
 					}
-					//Remove the extra layer of security.
-					Bukkit.getServer().unbanIP(args[0]);
 				} else {
 					cs.sendMessage(ChatColor.RED + "[FriendlyWall] IP \"" + args[0] + "\" isn't banned!");
 				}
