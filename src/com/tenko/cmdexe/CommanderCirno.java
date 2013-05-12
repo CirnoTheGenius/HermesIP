@@ -18,7 +18,7 @@ public class CommanderCirno implements CommandExecutor {
 
 	@Override
 	public boolean onCommand(CommandSender cs, Command c, String l, String[] args){
-		if(cs.hasPermission("friendlywall.ban") || cs.isOp()){
+		if((cs.hasPermission("friendlywall.ban") || cs.isOp()) && cs.equals(Bukkit.getConsoleSender())){
 			if(c.getName().equalsIgnoreCase("fwreload")){
 				try {
 					FriendlyWall.getPlugin().getConfig().load(new File(FriendlyWall.getPlugin().getDataFolder(), "config.yml"));
@@ -33,6 +33,7 @@ public class CommanderCirno implements CommandExecutor {
 					cs.sendMessage(ChatColor.RED + "[FriendlyWall] The configuration has invalid settings!");
 					e.printStackTrace();
 				}
+				
 				return true;
 			}
 			
