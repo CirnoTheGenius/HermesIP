@@ -2,17 +2,3 @@ name: FriendlyWall
 author: Tsunko
 version: 0.1
 main: com.tenko.FriendlyWall
-
-commands:
-    fwreload:
-        usage: /hreload
-        description: Reloads the config.
-    banip:
-        usage: /ipban [ip]
-        description: Bans the designated IP.
-    pardonip:
-        usage: /pardonip [ip]
-        description: Pardons the designated IP.
-    iplist:
-        usage: /iplist
-        description: Lists all currently banned IPs and range IP bans.
