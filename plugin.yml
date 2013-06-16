@@ -2,3 +2,8 @@ name: FriendlyWall
 author: Tsunko
 version: 0.1
 main: com.tenko.FriendlyWall
+
+permissions:
+ friendlywall.minecartlogger.ignore:
+    description: Ignore minecart logging.
+    default: op

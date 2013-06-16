@@ -1,8 +1,12 @@
 package com.tenko;
 
+import java.io.File;
 import java.lang.reflect.Field;
+import java.util.HashMap;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandMap;
 import org.bukkit.craftbukkit.v1_5_R3.CraftServer;
@@ -12,6 +16,7 @@ import com.tenko.cmdexe.CommanderCirno;
 import com.tenko.objs.TenkoCmd;
 
 import com.tenko.functions.IPBan;
+import com.tenko.functions.MinecartLogger;
 import com.tenko.functions.NoMobs;
 import com.tenko.functions.PassiveBeds;
 import com.tenko.functions.VineStunner;
@@ -51,6 +56,7 @@ public class FriendlyWall extends JavaPlugin {
 	
 	//Hacks.
 	private static CommandMap map;
+	private static HashMap<String, Command> knownCommands;
 	
 	@Override
 	public void onEnable(){
@@ -64,6 +70,15 @@ public class FriendlyWall extends JavaPlugin {
 			final Field cmdMap = CraftServer.class.getDeclaredField("commandMap");
 			cmdMap.setAccessible(true);
 			map = (CommandMap)cmdMap.get(Bukkit.getServer());
+			cmdMap.setAccessible(false);
+			
+			final Field cmdMapz = CraftServer.class.getDeclaredField("commandMap");
+			cmdMapz.setAccessible(true);
+			final Field kwnCmd = cmdMapz.get(Bukkit.getServer()).getClass().getDeclaredField("knownCommands");
+			kwnCmd.setAccessible(true);
+			knownCommands = (HashMap<String, Command>)kwnCmd.get(map);
+			kwnCmd.setAccessible(false);
+			cmdMapz.setAccessible(false);
 		} catch (Exception e){
 			e.printStackTrace();
 		}
@@ -74,6 +89,7 @@ public class FriendlyWall extends JavaPlugin {
 		PassiveBeds.startFunction();
 		NoMobs.startFunction();
 		VineStunner.startFunction();
+		MinecartLogger.startFunction();
 	}
 	
 	@Override
@@ -93,12 +109,31 @@ public class FriendlyWall extends JavaPlugin {
 	/**
 	 * Dynamic command registering.
 	 */
-	public static void registerCommand(String cmd, CommandExecutor exe){
+	public static TenkoCmd registerCommand(String cmd, CommandExecutor exe){
 		if(cmd != null && !cmd.isEmpty() && exe != null){
 			TenkoCmd theCmd = new TenkoCmd(cmd);
 			map.register("", theCmd);
 			theCmd.setExecutor(exe);
+			return theCmd;
 		}
+		
+		return null;
+	}
+	
+	public static void unregisterCommand(TenkoCmd cmd){
+		for(String s : cmd.getAliases()){
+			if(knownCommands.containsKey(s) && knownCommands.get(s).toString().contains(FriendlyWall.getPlugin().getName())){
+				knownCommands.remove(s);
+			}
+		}
+	}
+	
+	public static File getFunctionDirectory(String s){
+		File folder = new File(FriendlyWall.getPlugin().getDataFolder(), s);
+		if(!folder.exists()){
+			folder.mkdir();
+		}
+		return folder;
 	}
 	
 	/**

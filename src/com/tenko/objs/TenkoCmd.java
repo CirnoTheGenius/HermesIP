@@ -12,15 +12,16 @@ public class TenkoCmd extends Command {
         super(name);
     }
 
-    public boolean execute(CommandSender sender, String commandLabel,String[] args) {
+    @Override
+	public boolean execute(CommandSender sender, String commandLabel,String[] args) {
         if(exe != null){
             exe.onCommand(sender, this, commandLabel,args);
         }
         return false;
     }
     
-    public void setExecutor(CommandExecutor exe){
-        this.exe = exe;
+    public void setExecutor(CommandExecutor par1){
+        this.exe = par1;
     }
 
 }

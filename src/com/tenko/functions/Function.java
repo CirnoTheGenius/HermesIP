@@ -11,6 +11,7 @@ public abstract class Function implements Listener, CommandExecutor {
 	boolean successful = false;
 	String result = "No result!";
 	
+	@Override
 	public abstract boolean onCommand(CommandSender cs, Command c, String l, String[] args);
 	
 }
