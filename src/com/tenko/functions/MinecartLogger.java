@@ -39,12 +39,10 @@ public class MinecartLogger extends Function {
 		FriendlyWall.registerCommand("minecartlogwipe", this);
 		//register listener
 		Bukkit.getPluginManager().registerEvents(this, FriendlyWall.getPlugin());
-		System.out.println("Registered things.");
 	}
 	
 	public static void startFunction(){
 		new MinecartLogger();
-		System.out.println("Started");
 	}
 	
 	@Override

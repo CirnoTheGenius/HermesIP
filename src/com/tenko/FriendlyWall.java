@@ -22,7 +22,7 @@ import com.tenko.functions.PassiveBeds;
 import com.tenko.functions.VineStunner;
 
 /*
- * Achievements:
+ * Log entry when I feel like it:
  * Unknown: HermesIP was started.
  * 
  * Unknown: HermesIP's name changed to FriendlyWall.
@@ -43,12 +43,33 @@ import com.tenko.functions.VineStunner;
  * 
  * 	Note: This probably isn't accurate, as there's whitespaces and newlines.
  * 
+ * 6/16/13:
+ *  Damn that took a long time. Anyways, finished making minecart loggers
+ *  and everything. Rewrote a crud load so I can dynamically register commands
+ *  and unregister them at will. Currently listening to Rolling Girl,
+ *  Akiakane's cover if you ask. Specifically, this one:
+ *  	https://www.youtube.com/watch?v=Q7vrU2UxUD8
+ *  Not responsible for any homework time lost off of randomly clicking
+ *  on random videos on the side. Trust me, we've all been there. I question
+ *  myself on why I write these entries. I don't know either. Just felt
+ *  like putting it down after that whole 666 line fiasco, which by the way
+ *  was most likely to be inaccurate due to the white spaces. Did I ever tell
+ *  you that whenever I code on this plugin, I am likely to be re-encoding 
+ *  some anime in the background? Currently ramming the CPU usage to the
+ *  top of the charts. I don't know why, but Hyperthreading isn't showing
+ *  8 cores like it's supposed to. Oh well, that's for something to into for
+ *  later.
+ * 
  * 9/9/99:
  * 	I accidentally wipe my entire GitHub repository and run 9 magnets
  * 	through my hard drive, losing all source code. I also accidentally
- * 	launch a mysterious executable in which infected millions of computers
- * 	and wiped all data after 1.65 hours (99 minutes), kicking the entire
- * 	century back into the Stone Age. Good game, guys. We tried.
+ * 	launch a mysterious executable in which spreads it through the Windows
+ * 	RPC protocol by buffer overflowing it with the number 9, then performs
+ * 	an SQL injection that changes every username to "Baka". Using this method, 
+ * 	it infected 9 million computers and wiped all data after 1.65 hours 
+ * 	(99 minutes), kicking the entire century back into the Stone Age. 
+ * 	Good game, guys. 
+ * 	We tried.
  */
 public class FriendlyWall extends JavaPlugin {
 	
@@ -62,6 +83,7 @@ public class FriendlyWall extends JavaPlugin {
 	public void onEnable(){
 		instance = this;
 		
+		//This is VERY important. Never remove. Ever. No matter what.
 		Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "O" + ChatColor.GOLD + "p" + ChatColor.YELLOW + "e" + ChatColor.GREEN + "r" + ChatColor.BLUE + "a" + ChatColor.LIGHT_PURPLE + "t" + ChatColor.RED + "i" + ChatColor.GOLD + "o" + ChatColor.YELLOW + "n" + " " + ChatColor.GREEN + "F" + ChatColor.BLUE + "r" + ChatColor.LIGHT_PURPLE + "i" + ChatColor.RED + "e" + ChatColor.GOLD + "n" + ChatColor.YELLOW + "d" + ChatColor.GREEN + "l" + ChatColor.BLUE + "y" + ChatColor.LIGHT_PURPLE + "W" + ChatColor.RED + "a" + ChatColor.GOLD + "l" + ChatColor.YELLOW + "l" + ChatColor.GREEN + ":" + " " + ChatColor.BLUE + "C" + ChatColor.LIGHT_PURPLE + "o" + ChatColor.RED + "m" + ChatColor.GOLD + "m" + ChatColor.YELLOW + "e" + ChatColor.GREEN + "n" + ChatColor.BLUE + "c" + ChatColor.LIGHT_PURPLE + "e" + ChatColor.RED + "!");
 		Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "R" + ChatColor.GOLD + "a" + ChatColor.YELLOW + "i" + ChatColor.GREEN + "n" + ChatColor.BLUE + "b" + ChatColor.LIGHT_PURPLE + "o" + ChatColor.RED + "w" + ChatColor.GOLD + "s" + " " + ChatColor.YELLOW + "m" + ChatColor.GREEN + "e" + ChatColor.BLUE + "a" + ChatColor.LIGHT_PURPLE + "n" + ChatColor.RED + "s" + " " + ChatColor.GOLD + "f" + ChatColor.YELLOW + "r" + ChatColor.GREEN + "i" + ChatColor.BLUE + "e" + ChatColor.LIGHT_PURPLE + "n" + ChatColor.RED + "d" + ChatColor.GOLD + "s" + ChatColor.YELLOW + "h" + ChatColor.GREEN + "i" + ChatColor.BLUE + "p" + " " + ChatColor.LIGHT_PURPLE + "w" + ChatColor.RED + "h" + ChatColor.GOLD + "i" + ChatColor.YELLOW + "c" + ChatColor.GREEN + "h" + " " + ChatColor.BLUE + "m" + ChatColor.LIGHT_PURPLE + "e" + ChatColor.RED + "a" + ChatColor.GOLD + "n" + ChatColor.YELLOW + "s" + " " + ChatColor.GREEN + "u" + ChatColor.BLUE + "n" + ChatColor.LIGHT_PURPLE + "b" + ChatColor.RED + "a" + ChatColor.GOLD + "n" + " " + ChatColor.YELLOW + "k" + ChatColor.GREEN + "a" + ChatColor.BLUE + "d" + ChatColor.LIGHT_PURPLE + "a" + ChatColor.RED + "p" + ChatColor. GOLD + "u" + ChatColor.YELLOW + "n" + ChatColor.GREEN + "n" + ChatColor.BLUE + "y" + ChatColor.LIGHT_PURPLE + "!");
 	
@@ -70,15 +92,12 @@ public class FriendlyWall extends JavaPlugin {
 			final Field cmdMap = CraftServer.class.getDeclaredField("commandMap");
 			cmdMap.setAccessible(true);
 			map = (CommandMap)cmdMap.get(Bukkit.getServer());
-			cmdMap.setAccessible(false);
-			
-			final Field cmdMapz = CraftServer.class.getDeclaredField("commandMap");
-			cmdMapz.setAccessible(true);
-			final Field kwnCmd = cmdMapz.get(Bukkit.getServer()).getClass().getDeclaredField("knownCommands");
+			final Field kwnCmd = map.getClass().getDeclaredField("knownCommands");
 			kwnCmd.setAccessible(true);
 			knownCommands = (HashMap<String, Command>)kwnCmd.get(map);
+			
 			kwnCmd.setAccessible(false);
-			cmdMapz.setAccessible(false);
+			cmdMap.setAccessible(false);
 		} catch (Exception e){
 			e.printStackTrace();
 		}

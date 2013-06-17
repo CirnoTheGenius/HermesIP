@@ -43,7 +43,7 @@ public class CommanderCirno implements CommandExecutor {
 					e.printStackTrace();
 				}
 			} else if(c.getName().equalsIgnoreCase("fwinfo")){
-				cs.sendMessage(ChatColor.GOLD + "Project FriendlyWall [Version 0.1.3]");
+				cs.sendMessage(ChatColor.GOLD + "Project FriendlyWall [Version 0.1.5]");
 				cs.sendMessage(ChatColor.BLUE + "Coding by Tenko/Tsunko");
 				cs.sendMessage(ChatColor.BLUE + "Idea by Remi_Scarlet");
 				cs.sendMessage(ChatColor.BLUE + "This plugin is private and to be used only for YukkuriCraft. Any other server, you probably compiled this yourself. Congratulations, you are winrar.");
