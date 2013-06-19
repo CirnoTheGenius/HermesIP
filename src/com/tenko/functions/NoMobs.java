@@ -4,26 +4,39 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 
 import com.tenko.FriendlyWall;
+import com.tenko.objs.TenkoCmd;
 import com.tenko.yaml.YamlWriter;
 
 public class NoMobs extends Function {
-
+	
+	private static TenkoCmd[] cmds;
+	
 	public NoMobs(){
 		//Register event.
 		Bukkit.getServer().getPluginManager().registerEvents(this, FriendlyWall.getPlugin());
 
 		//Register commands.
-		FriendlyWall.registerCommand("moblessadd", this);
-		FriendlyWall.registerCommand("moblessrem", this);
-		FriendlyWall.registerCommand("moblesslist", this);
+		cmds = new TenkoCmd[]{
+				FriendlyWall.registerCommand("moblessadd", this),
+				FriendlyWall.registerCommand("moblessrem", this),
+				FriendlyWall.registerCommand("moblesslist", this),
+		};
 	}
 	
 	public static void startFunction(){
 		new NoMobs();
+	}
+	
+	public static void stopFunction(){
+		for(TenkoCmd cmd : cmds){
+			FriendlyWall.unregisterCommand(cmd);
+		}
 	}
 	
 	@EventHandler
@@ -46,6 +59,12 @@ public class NoMobs extends Function {
 				} else {
 					result = "Removed all tenctacles! Added " + ChatColor.YELLOW + args[0] + ".";
 					successful = true;
+				}
+				
+				for(Entity e : Bukkit.getWorld(args[0]).getEntities()){
+					if(e.getType() != EntityType.PLAYER){
+						e.remove();
+					}
 				}
 
 				cs.sendMessage((successful ? ChatColor.BLUE : ChatColor.RED) + "[FriendlyWall - MoblessWorlds] " + result);

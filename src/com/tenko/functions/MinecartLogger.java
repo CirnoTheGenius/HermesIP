@@ -34,15 +34,25 @@ public class MinecartLogger extends Function {
 	
 	boolean isConfirming = false;
 	
+	private static TenkoCmd[] cmds;
+	
 	public MinecartLogger(){
-		//register commands and stuff.
-		FriendlyWall.registerCommand("minecartlogwipe", this);
+		//Register commands.
+		cmds = new TenkoCmd[]{
+				FriendlyWall.registerCommand("minecartlogwipe", this),
+		};
 		//register listener
 		Bukkit.getPluginManager().registerEvents(this, FriendlyWall.getPlugin());
 	}
 	
 	public static void startFunction(){
 		new MinecartLogger();
+	}
+	
+	public static void stopFunction(){
+		for(TenkoCmd cmd : cmds){
+			FriendlyWall.unregisterCommand(cmd);
+		}
 	}
 	
 	@Override
@@ -86,7 +96,7 @@ public class MinecartLogger extends Function {
 		if(e.hasBlock() && e.getAction() == Action.RIGHT_CLICK_BLOCK && e.getPlayer().getItemInHand().getType().toString().contains("MINECART") && e.getClickedBlock().getType().toString().contains("RAIL") && !e.getPlayer().hasPermission("friendlywall.minecartlogger.ignore")){
 			e.setCancelled(true);
 			
-			if(!logEvent(e.getPlayer().getName(), e.getPlayer().getWorld().getName(), "Create")){
+			if(!logEvent(e.getPlayer().getName(), e.getPlayer().getWorld().getName(), Result.CREATE)){
 				e.getPlayer().sendMessage(ChatColor.RED + "You can't do that!");
 				return;
 			}
@@ -101,11 +111,11 @@ public class MinecartLogger extends Function {
 	@EventHandler
 	public void minecartDeathEvent(VehicleDestroyEvent e){
 		if(e.getVehicle().getType().toString().contains("MINECART") && e.getAttacker().getType() == EntityType.PLAYER && !((Player)e.getAttacker()).getPlayer().hasPermission("friendlywall.minecartlogger.ignore")){
-			logEvent(((Player)e.getAttacker()).getName(), e.getVehicle().getWorld().getName(), "Destroy");
+			logEvent(((Player)e.getAttacker()).getName(), e.getVehicle().getWorld().getName(), Result.DESTROY);
 		}
 	}
 	
-	public boolean logEvent(String plyrName, String worldName, String action){
+	public boolean logEvent(String plyrName, String worldName, Result create){
 	    File file = new File(FriendlyWall.getFunctionDirectory("MinecartLogger"), plyrName+".yml");
 	    try {
 	        file.createNewFile();
@@ -114,7 +124,7 @@ public class MinecartLogger extends Function {
 	    }
 	    FileConfiguration fc = YamlConfiguration.loadConfiguration(file);
 	    int limit = fc.getInt(worldName + ".Limit");
-	    int logged = fc.getInt(worldName + "." + action)+1;
+	    int logged = fc.getInt(worldName + ".Placed") + (create.equals(Result.DESTROY) ? -1 : 1);
 	    if(limit == 0){
 	    	limit = 100;
 	    	fc.set(worldName + ".Limit", 100);
@@ -123,7 +133,7 @@ public class MinecartLogger extends Function {
 	    	return false;
 	    }
 	    //For some strange reason, this function is called twice.
-	    fc.set(worldName + "." + action, logged);
+	    fc.set(worldName + ".Placed", logged);
 	    try {
 			fc.save(file);
 		} catch (IOException e) {
@@ -146,5 +156,9 @@ public class MinecartLogger extends Function {
 			}
 			return false;
 		}
+	}
+	
+	private enum Result {
+		CREATE, DESTROY
 	}
 }

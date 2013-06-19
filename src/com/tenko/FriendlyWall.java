@@ -59,6 +59,13 @@ import com.tenko.functions.VineStunner;
  *  top of the charts. I don't know why, but Hyperthreading isn't showing
  *  8 cores like it's supposed to. Oh well, that's for something to into for
  *  later.
+ *  
+ * 6/19/13:
+ * 	Made updater; it downloads from my Dropbox account, but by the time this is
+ * 	uploaded, I would have removed the line for it. Listening to World's End, one of
+ * 	Demetori's arranges of Cosmic Mind.
+ * 		http://www.youtube.com/watch?v=JI0jAW7s0YY
+ * 	Eh, I don't have anything to put here. 
  * 
  * 9/9/99:
  * 	I accidentally wipe my entire GitHub repository and run 9 magnets
@@ -114,11 +121,16 @@ public class FriendlyWall extends JavaPlugin {
 	@Override
 	public void onDisable(){
 		this.saveConfig();
+		CommanderCirno.stopFunction();
+		IPBan.stopFunction();
+		PassiveBeds.stopFunction();
+		NoMobs.stopFunction();
+		VineStunner.stopFunction();
+		MinecartLogger.stopFunction();
 	}
 	
-	public void disablePlugin(){
-		onDisable();
-		this.setEnabled(false);
+	public static void disablePlugin(){
+		Bukkit.getPluginManager().disablePlugin(FriendlyWall.getPlugin());
 	}
 	
 	public static FriendlyWall getPlugin(){
@@ -140,10 +152,8 @@ public class FriendlyWall extends JavaPlugin {
 	}
 	
 	public static void unregisterCommand(TenkoCmd cmd){
-		for(String s : cmd.getAliases()){
-			if(knownCommands.containsKey(s) && knownCommands.get(s).toString().contains(FriendlyWall.getPlugin().getName())){
-				knownCommands.remove(s);
-			}
+		if(knownCommands.get(cmd.getName()).toString().startsWith("com.tenko.objs.TenkoCmd")){
+			knownCommands.remove(cmd.getName());
 		}
 	}
 	

@@ -13,18 +13,28 @@ import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerLoginEvent.Result;
 
 import com.tenko.FriendlyWall;
+import com.tenko.objs.TenkoCmd;
 import com.tenko.yaml.YamlWriter;
 
 public class IPBan extends Function {
+	private static TenkoCmd[] cmds;
 
 	public IPBan(){
 		//Register event.
 		Bukkit.getServer().getPluginManager().registerEvents(this, FriendlyWall.getPlugin());
 
 		//Register commands.
-		FriendlyWall.registerCommand("banip", this);
-		FriendlyWall.registerCommand("pardonip", this);
-		FriendlyWall.registerCommand("iplist", this);
+		cmds = new TenkoCmd[]{
+				FriendlyWall.registerCommand("banip", this),
+				FriendlyWall.registerCommand("pardonip", this),
+				FriendlyWall.registerCommand("iplist", this),
+		};
+	}
+	
+	public static void stopFunction(){
+		for(TenkoCmd cmd : cmds){
+			FriendlyWall.unregisterCommand(cmd);
+		}
 	}
 	
 	public static void startFunction(){
@@ -61,7 +71,9 @@ public class IPBan extends Function {
 			}
 
 			if(c.getName().equalsIgnoreCase("pardonip")){
-				if(!YamlWriter.removeFromList(args[0], "Bans")){
+				if(args.length < 1){
+					result = "You didn't supply an argument!";
+				} else if(!YamlWriter.removeFromList(args[0], "Bans")){
 					result = "IP \"" + args[0] + "\" isn't banned!";
 				} else {
 					result = "Pardoned IP " + ChatColor.YELLOW + args[0] + ".";

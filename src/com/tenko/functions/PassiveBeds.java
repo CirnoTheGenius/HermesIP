@@ -11,22 +11,33 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 import com.tenko.FriendlyWall;
+import com.tenko.objs.TenkoCmd;
 import com.tenko.yaml.YamlWriter;
 
 public class PassiveBeds extends Function {
+	
+	private static TenkoCmd[] cmds;
 	
 	public PassiveBeds(){
 		//Register event.
 		Bukkit.getServer().getPluginManager().registerEvents(this, FriendlyWall.getPlugin());
 		
 		//Register commands.
-		FriendlyWall.registerCommand("passiveadd", this);
-		FriendlyWall.registerCommand("passiverem", this);
-		FriendlyWall.registerCommand("passivelist", this);
+		cmds = new TenkoCmd[]{
+				FriendlyWall.registerCommand("passiveadd", this),
+				FriendlyWall.registerCommand("passiverem", this),
+				FriendlyWall.registerCommand("passivelist", this),
+		};
 	}
 	
 	public static void startFunction(){
 		new PassiveBeds();
+	}
+	
+	public static void stopFunction(){
+		for(TenkoCmd cmd : cmds){
+			FriendlyWall.unregisterCommand(cmd);
+		}
 	}
 	
 	@EventHandler(priority = EventPriority.LOWEST)
