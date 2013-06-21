@@ -85,6 +85,7 @@ public class FriendlyWall extends JavaPlugin {
 	//Hacks.
 	private static CommandMap map;
 	private static HashMap<String, Command> knownCommands;
+	private FunctionManager fm;
 	
 	@Override
 	public void onEnable(){
@@ -110,23 +111,22 @@ public class FriendlyWall extends JavaPlugin {
 		}
 		
 		//Find a way to manage this later.
+		//edit: Found a better way :3
 		CommanderCirno.startFunction();
-		IPBan.startFunction();
-		PassiveBeds.startFunction();
-		NoMobs.startFunction();
-		VineStunner.startFunction();
-		MinecartLogger.startFunction();
+		
+		fm = new FunctionManager();
+		fm.add(NoMobs.class, "moblessadd", "moblessrem", "moblesslist");
+		fm.add(IPBan.class, "banip", "pardonip", "iplist");
+		fm.add(MinecartLogger.class, "minecartlogwipe");
+		fm.add(PassiveBeds.class, "passiveadd", "passiverem", "passivelist");
+		fm.add(VineStunner.class, "vinestunadd", "vinestunrem", "vinestunlist");
 	}
 	
 	@Override
 	public void onDisable(){
 		this.saveConfig();
 		CommanderCirno.stopFunction();
-		IPBan.stopFunction();
-		PassiveBeds.stopFunction();
-		NoMobs.stopFunction();
-		VineStunner.stopFunction();
-		MinecartLogger.stopFunction();
+		fm.removeAll();
 	}
 	
 	public static void disablePlugin(){

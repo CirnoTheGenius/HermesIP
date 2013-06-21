@@ -14,7 +14,9 @@ import com.tenko.FriendlyWall;
 import com.tenko.objs.TenkoCmd;
 import com.tenko.updater.Updater;
 
+//Why extend Function when it doesn't listen for anything :P?
 public class CommanderCirno implements CommandExecutor {
+	
 	private static TenkoCmd[] cmds;
 	
 	//Base for entire plugin.
@@ -55,7 +57,7 @@ public class CommanderCirno implements CommandExecutor {
 				}
 			} else if(c.getName().equalsIgnoreCase("fwinfo")){
 				//Major, Minor, Sub-Minor, Bugfix
-				cs.sendMessage(ChatColor.GOLD + "Project FriendlyWall [Version 0.1.8b]");
+				cs.sendMessage(ChatColor.GOLD + "Project FriendlyWall [Version 1.1.8c]");
 				cs.sendMessage(ChatColor.BLUE + "Coding by Tenko/Tsunko");
 				cs.sendMessage(ChatColor.BLUE + "Idea by Remi_Scarlet");
 				cs.sendMessage(ChatColor.BLUE + "This plugin is private and to be used only for YukkuriCraft. Any other server, you probably compiled this yourself. Congratulations, you are winrar.");

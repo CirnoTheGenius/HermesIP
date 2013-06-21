@@ -13,34 +13,10 @@ import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerLoginEvent.Result;
 
 import com.tenko.FriendlyWall;
-import com.tenko.objs.TenkoCmd;
 import com.tenko.yaml.YamlWriter;
 
 public class IPBan extends Function {
-	private static TenkoCmd[] cmds;
-
-	public IPBan(){
-		//Register event.
-		Bukkit.getServer().getPluginManager().registerEvents(this, FriendlyWall.getPlugin());
-
-		//Register commands.
-		cmds = new TenkoCmd[]{
-				FriendlyWall.registerCommand("banip", this),
-				FriendlyWall.registerCommand("pardonip", this),
-				FriendlyWall.registerCommand("iplist", this),
-		};
-	}
 	
-	public static void stopFunction(){
-		for(TenkoCmd cmd : cmds){
-			FriendlyWall.unregisterCommand(cmd);
-		}
-	}
-	
-	public static void startFunction(){
-		new IPBan();
-	}
-
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void StopRightThere(PlayerLoginEvent criminalScum){
 		if(isBanned(criminalScum.getAddress())){

@@ -9,40 +9,15 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockPhysicsEvent;
 
 import com.tenko.FriendlyWall;
-import com.tenko.objs.TenkoCmd;
 import com.tenko.yaml.YamlWriter;
 
 public class VineStunner extends Function {
-	
-	private static TenkoCmd[] cmds;
-	
-	public VineStunner(){
-		//Register event.
-		Bukkit.getServer().getPluginManager().registerEvents(this, FriendlyWall.getPlugin());
-
-		//Register commands.
-		cmds = new TenkoCmd[]{
-				FriendlyWall.registerCommand("vinestunadd", this),
-				FriendlyWall.registerCommand("vinestunrem", this),
-				FriendlyWall.registerCommand("vinestunlist", this),
-		};
-	}
-	
-	public static void startFunction(){
-		new VineStunner();
-	}
-	
-	public static void stopFunction(){
-		for(TenkoCmd cmd : cmds){
-			FriendlyWall.unregisterCommand(cmd);
-		}
-	}
 	
 	@EventHandler
 	public void stopGrowth(BlockPhysicsEvent e){
 		if(e.getBlock().getType() == Material.VINE && cannotGrow(e.getBlock().getWorld().getName())){
 			e.setCancelled(true);
-		}//wat
+		}
 	}
 	
 	@Override

@@ -10,34 +10,9 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 
 import com.tenko.FriendlyWall;
-import com.tenko.objs.TenkoCmd;
 import com.tenko.yaml.YamlWriter;
 
 public class NoMobs extends Function {
-	
-	private static TenkoCmd[] cmds;
-	
-	public NoMobs(){
-		//Register event.
-		Bukkit.getServer().getPluginManager().registerEvents(this, FriendlyWall.getPlugin());
-
-		//Register commands.
-		cmds = new TenkoCmd[]{
-				FriendlyWall.registerCommand("moblessadd", this),
-				FriendlyWall.registerCommand("moblessrem", this),
-				FriendlyWall.registerCommand("moblesslist", this),
-		};
-	}
-	
-	public static void startFunction(){
-		new NoMobs();
-	}
-	
-	public static void stopFunction(){
-		for(TenkoCmd cmd : cmds){
-			FriendlyWall.unregisterCommand(cmd);
-		}
-	}
 	
 	@EventHandler
 	public void noSpawn(CreatureSpawnEvent e){

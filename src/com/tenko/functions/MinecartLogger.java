@@ -26,34 +26,8 @@ import com.tenko.FriendlyWall;
 import com.tenko.objs.TenkoCmd;
 
 public class MinecartLogger extends Function {
-	/*
-	 * TODO:
-	 * Per world.
-	 * Failsafe to wipe individual data and all data.
-	*/
 	
 	boolean isConfirming = false;
-	
-	private static TenkoCmd[] cmds;
-	
-	public MinecartLogger(){
-		//Register commands.
-		cmds = new TenkoCmd[]{
-				FriendlyWall.registerCommand("minecartlogwipe", this),
-		};
-		//register listener
-		Bukkit.getPluginManager().registerEvents(this, FriendlyWall.getPlugin());
-	}
-	
-	public static void startFunction(){
-		new MinecartLogger();
-	}
-	
-	public static void stopFunction(){
-		for(TenkoCmd cmd : cmds){
-			FriendlyWall.unregisterCommand(cmd);
-		}
-	}
 	
 	@Override
 	public boolean onCommand(final CommandSender cs, Command c, String l, String[] args){
