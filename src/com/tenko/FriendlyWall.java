@@ -17,6 +17,7 @@ import com.tenko.objs.TenkoCmd;
 
 import com.tenko.functions.IPBan;
 import com.tenko.functions.MinecartLogger;
+import com.tenko.functions.Moosic;
 import com.tenko.functions.NazrinBlocks;
 import com.tenko.functions.NoMobs;
 import com.tenko.functions.PassiveBeds;
@@ -122,6 +123,7 @@ public class FriendlyWall extends JavaPlugin {
 		fm.add(PassiveBeds.class, "passiveadd", "passiverem", "passivelist");
 		fm.add(VineStunner.class, "vinestunadd", "vinestunrem", "vinestunlist");
 		fm.add(NazrinBlocks.class, (String[])null);
+		fm.add(Moosic.class, "moosic");
 	}
 	
 	@Override
