@@ -22,7 +22,7 @@ public class FunctionManager {
 			
 			Bukkit.getPluginManager().registerEvents(newFunction, FriendlyWall.getPlugin());
 			
-			if(commands.length > 0){
+			if(commands != null && commands.length > 0){
 				for(String cmd : commands){
 					newFunction.getCommands().add(FriendlyWall.registerCommand(cmd, newFunction));
 				}
