@@ -123,7 +123,7 @@ public class FriendlyWall extends JavaPlugin {
 		fm.add(PassiveBeds.class, "passiveadd", "passiverem", "passivelist");
 		fm.add(VineStunner.class, "vinestunadd", "vinestunrem", "vinestunlist");
 		fm.add(NazrinBlocks.class, (String[])null);
-		fm.add(Moosic.class, "moosic");
+		fm.add(Moosic.class, "moosic", "stopmoosic");
 	}
 	
 	@Override
