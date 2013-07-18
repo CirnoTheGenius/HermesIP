@@ -3,18 +3,21 @@ package com.tenko;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandMap;
-import org.bukkit.craftbukkit.v1_5_R3.CraftServer;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.tenko.cmdexe.CommanderCirno;
 import com.tenko.objs.TenkoCmd;
 
+import com.tenko.functions.Chairs;
+import com.tenko.functions.GCForce;
 import com.tenko.functions.IPBan;
 import com.tenko.functions.MinecartLogger;
 import com.tenko.functions.Moosic;
@@ -87,7 +90,10 @@ public class FriendlyWall extends JavaPlugin {
 	//Hacks.
 	private static CommandMap map;
 	private static HashMap<String, Command> knownCommands;
+	private static HashMap<String, Location> sitters = new HashMap<String, Location>();
 	private FunctionManager fm;
+	private static String packageName = Bukkit.getServer().getClass().getPackage().getName();
+	private static String version = packageName.substring(packageName.lastIndexOf(".") + 1);
 	
 	@Override
 	public void onEnable(){
@@ -99,7 +105,7 @@ public class FriendlyWall extends JavaPlugin {
 	
 		//Reflection. wstfgl. help.
 		try {
-			final Field cmdMap = CraftServer.class.getDeclaredField("commandMap");
+			final Field cmdMap = Class.forName("org.bukkit.craftbukkit." + version + ".CraftServer").getDeclaredField("commandMap");
 			cmdMap.setAccessible(true);
 			map = (CommandMap)cmdMap.get(Bukkit.getServer());
 			final Field kwnCmd = map.getClass().getDeclaredField("knownCommands");
@@ -123,7 +129,9 @@ public class FriendlyWall extends JavaPlugin {
 		fm.add(PassiveBeds.class, "passiveadd", "passiverem", "passivelist");
 		fm.add(VineStunner.class, "vinestunadd", "vinestunrem", "vinestunlist");
 		fm.add(NazrinBlocks.class, (String[])null);
-		fm.add(Moosic.class, "moosic", "stopmoosic");
+		fm.add(Moosic.class, "moosic", "moosicstop", "moosicsound", "moosictrack");
+		fm.add(GCForce.class, "gcforce", "hcdebugmatch", "dumpallthreads", "atmptstoptenkothread", "dumptenkothreads");
+		fm.add(Chairs.class, (String[])null);
 	}
 	
 	@Override
@@ -131,6 +139,11 @@ public class FriendlyWall extends JavaPlugin {
 		this.saveConfig();
 		CommanderCirno.stopFunction();
 		fm.removeAll();
+		
+		for(String s : getSitters().keySet()){
+			Chairs.onDisabledStopSitting(Bukkit.getPlayer(s));
+		}
+		
 	}
 	
 	public static void disablePlugin(){
@@ -139,6 +152,14 @@ public class FriendlyWall extends JavaPlugin {
 	
 	public static FriendlyWall getPlugin(){
 		return instance;
+	}
+	
+	public static String getVersion(){
+		return version;
+	}
+	
+	public static Map<String, Location> getSitters(){
+		return sitters;
 	}
 	
 	/**

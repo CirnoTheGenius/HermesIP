@@ -25,8 +25,6 @@ import org.bukkit.inventory.ItemStack;
 public class MinecartLogger extends Function {
 	
 	boolean isConfirming = false;
-	private String packageName = Bukkit.getServer().getClass().getPackage().getName();
-	private String version = this.packageName.substring(this.packageName.lastIndexOf(".") + 1);
 	Class<?> nmsWorld;
 	Class<?> craftWorld;
 	Class<?> nmsEntityMinecart;
@@ -35,12 +33,13 @@ public class MinecartLogger extends Function {
 
 	public MinecartLogger(){
 		try {
-			this.nmsWorld = Class.forName("net.minecraft.server." + this.version + ".World");
-			this.nmsEntityMinecart = Class.forName("net.minecraft.server." + this.version + ".EntityMinecartAbstract");
-			this.nmsMinecartItem = Class.forName("net.minecraft.server." + this.version + ".ItemMinecart");
-
-			this.craftWorld = Class.forName("org.bukkit.craftbukkit." + this.version + ".CraftWorld");
-			this.craftItemStack = Class.forName("org.bukkit.craftbukkit." + this.version + ".inventory.CraftItemStack");
+			String version = FriendlyWall.getVersion();
+			nmsWorld = Class.forName("net.minecraft.server." + version + ".World");
+			nmsEntityMinecart = Class.forName("net.minecraft.server." + version + ".EntityMinecartAbstract");
+			nmsMinecartItem = Class.forName("net.minecraft.server." + version + ".ItemMinecart");
+				
+			craftWorld = Class.forName("org.bukkit.craftbukkit." + version + ".CraftWorld");
+			craftItemStack = Class.forName("org.bukkit.craftbukkit." + version + ".inventory.CraftItemStack");
 		} catch (Exception e){
 			e.printStackTrace();
 		}
@@ -103,10 +102,10 @@ public class MinecartLogger extends Function {
 			Object itemCart = this.nmsMinecartItem.cast(nmsCopyNo2);
 			Field f = itemCart.getClass().getField("a");
 			f.setAccessible(true);
-			Object entityMinecart = this.nmsEntityMinecart.getMethod("a", new Class[] { Class.forName("net.minecraft.server." + this.version + ".World"), Double.TYPE, Double.TYPE, Double.TYPE, Integer.TYPE }).invoke(null, new Object[] { nmsWorldObj, Double.valueOf(b.getX() + 0.5D), Double.valueOf(b.getY() + 0.5D), Double.valueOf(b.getZ() + 0.5D), f.get(itemCart) });
+			Object entityMinecart = this.nmsEntityMinecart.getMethod("a", new Class[] { Class.forName("net.minecraft.server." + FriendlyWall.getVersion() + ".World"), Double.TYPE, Double.TYPE, Double.TYPE, Integer.TYPE }).invoke(null, new Object[] { nmsWorldObj, Double.valueOf(b.getX() + 0.5D), Double.valueOf(b.getY() + 0.5D), Double.valueOf(b.getZ() + 0.5D), f.get(itemCart) });
 			f.setAccessible(false);
 
-			nmsWorldObj.getClass().getMethod("addEntity", new Class[] { Class.forName("net.minecraft.server." + this.version + ".Entity") }).invoke(nmsWorldObj, new Object[] { entityMinecart });
+			nmsWorldObj.getClass().getMethod("addEntity", new Class[] { Class.forName("net.minecraft.server." + FriendlyWall.getVersion() + ".Entity") }).invoke(nmsWorldObj, new Object[] { entityMinecart });
 			plyr.setItemInHand(null);
 		} catch (IllegalAccessException|IllegalArgumentException|InvocationTargetException|NoSuchMethodException|SecurityException|NoSuchFieldException|ClassNotFoundException e){
 			e.printStackTrace();

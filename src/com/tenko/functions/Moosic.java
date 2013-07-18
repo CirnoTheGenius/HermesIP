@@ -1,149 +1,115 @@
 package com.tenko.functions;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
-import javax.sound.midi.InvalidMidiDataException;
-import javax.sound.midi.MidiMessage;
-import javax.sound.midi.MidiSystem;
-import javax.sound.midi.MidiUnavailableException;
-import javax.sound.midi.Receiver;
-import javax.sound.midi.Sequencer;
-import javax.sound.midi.ShortMessage;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.ChatColor;
-import org.bukkit.Note;
-import org.bukkit.Note.Tone;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
 import com.tenko.objs.MidiSeq;
+import com.tenko.objs.MidiThread;
 
 public class Moosic extends Function {
 
-	HashMap<String, MidiSeq> storage;
+	private static Map<String, MidiSeq> storage;
+	private static Sound instrumentSound = Sound.NOTE_PIANO;
+	private List<MidiThread> musicThreads;
+	private static Map<Integer, Sound> tracks;
+	
+	public Moosic(){
+		storage = Maps.newHashMap();
+		musicThreads = Lists.newArrayList();
+		tracks = Maps.newHashMap();
+	}
 
 	@Override
-	public boolean onCommand(final CommandSender cs, Command c, String l, final String[] args){
+	public boolean onCommand(CommandSender cs, Command c, String l, String[] args){
 		if(cs.isOp()){
 			if(c.getName().equalsIgnoreCase("moosic")){
 				try {
 					final Player plyr = (Player)cs;
 					if(args.length > 0){
-						new Thread(){
-							@Override
-							public void run(){
-								try {
-									Sequencer sq = MidiSystem.getSequencer(false);
-									sq.setSequence(new URL(args[0]).openStream());
-									sq.open();
-									sq.setTempoFactor(1);
-
-									MidiRecieve midi = new MidiRecieve(plyr);
-									sq.getTransmitter().setReceiver(midi);
-									sq.start();
-
-									storage.put(cs.getName(), new MidiSeq(sq, midi));
-								} catch (IOException | InvalidMidiDataException | MidiUnavailableException e) {
-									e.printStackTrace();
-								}
-							}
-						}.start();
+						if(storage.containsKey(plyr.getName())){
+							closeStream(cs);
+						}
+						
+						MidiThread thread = new MidiThread(plyr, args[0], ArrayUtils.contains(args, "l"));
+						musicThreads.add(thread);
+						thread.start();
+						
+						cs.sendMessage(ChatColor.BLUE + "Playing " + args[0]);
+						return true;
+					} else {
+						cs.sendMessage(ChatColor.RED + "Wheres the argument, baka!?");
+						return true;
 					}
 				} catch (ClassCastException e){
 					cs.sendMessage(ChatColor.RED + "You must be a player!");
+					return true;
 				}
-			}
-		} else if(c.getName().equalsIgnoreCase("stopmoosic")){
-			try {
-				storage.get(cs.getName()).close();
-			} catch (Exception e){
-				cs.sendMessage(ChatColor.RED + "what are you doing");
+			} else if(c.getName().equalsIgnoreCase("moosicstop")){
+				closeStream(cs);
+			} else if(c.getName().equalsIgnoreCase("moosicsound")){
+				for(Sound s : Sound.values()){
+					if(s.toString().trim().equalsIgnoreCase(args[0].trim())){
+						instrumentSound = s;
+						return true;
+					}
+				}
+				cs.sendMessage(ChatColor.RED + "There wasn't a sound by that name!");
+				return true;
+			} else if(c.getName().equalsIgnoreCase("moosictrack")){
+				try {
+					int track = Integer.valueOf(args[0]);
+					for(Sound s : Sound.values()){
+						if(s.toString().trim().equalsIgnoreCase(args[1].trim())){
+							tracks.put(track, s);
+							cs.sendMessage(ChatColor.RED + "Set track " + track + "'s instrument to " + s);
+							return true;
+						}
+					}
+				} catch (ArrayIndexOutOfBoundsException e){
+					cs.sendMessage(ChatColor.RED + "Please provide two arguments!");
+				} catch (NumberFormatException e){
+					cs.sendMessage(ChatColor.RED + "Use a number!");
+				}
 			}
 		}
 		return false;
 	}
 
-	public class MidiRecieve implements Receiver {
-
-		private static final float VOLUME_RANGE = 10.0f;
-
-		private final Map<Integer, Integer> channelPatches;
-		private final byte BASE_NOTE = new Note(1, Tone.F, true).getId();
-		private static final int MIDI_BASE_FSHARP = 54;
-
-		private Player plyr;
-		public MidiRecieve(Player p)
-		{
-			plyr = p;
-			this.channelPatches = new HashMap<Integer, Integer>();
-		}
-
-		@Override
-		public void send(MidiMessage m, long time)
-		{
-			if (m instanceof ShortMessage)
-			{
-				ShortMessage smessage = (ShortMessage) m;
-				int chan = smessage.getChannel();
-
-				switch (smessage.getCommand())
-				{
-				case ShortMessage.PROGRAM_CHANGE:
-					int patch = smessage.getData1();
-					channelPatches.put(chan, patch);
-					break;
-
-				case ShortMessage.NOTE_ON:
-					this.playNote(smessage);
-					break;
-
-				case ShortMessage.NOTE_OFF:
-					break;
-				default:
-					break;
-				}
-			}
-		}
-
-		public void playNote(ShortMessage message)
-		{
-			if (ShortMessage.NOTE_ON != message.getCommand()) return;
-
-			float pitch = (float) midiToPitch(message);
-			float volume = VOLUME_RANGE * (message.getData2() / 127.0f);
-
-			Sound instrument = Sound.NOTE_PIANO;
-
-			plyr.getWorld().playSound(plyr.getLocation(), instrument, volume, pitch);
-		}
-
-		@Override
-		public void close()
-		{
-			channelPatches.clear();
-		}
-
-
-		public double noteToPitch(Note note)
-		{
-			double semitones = note.getId() - BASE_NOTE;
-			return Math.pow(2.0, semitones / 12.0);
-		}
-
-		public Note midiToNote(ShortMessage smsg)
-		{
-			assert smsg.getCommand() == ShortMessage.NOTE_ON;
-			int semitones = smsg.getData1() - MIDI_BASE_FSHARP % 12;
-			return new Note(semitones % 24);
-		}
-
-		public double midiToPitch(ShortMessage smsg)
-		{
-			return noteToPitch(midiToNote(smsg));
+	@SuppressWarnings("deprecation")
+	public void closeStream(CommandSender cs){
+		MidiSeq ms = storage.get(cs.getName());
+		ms.close();
+		storage.remove(cs);
+		
+		Iterator<MidiThread> iter = musicThreads.iterator();
+		while(iter.hasNext()){
+			Thread t = iter.next();
+		    t.stop();
+		    iter.remove();
 		}
 	}
+	
+	public static Map<String, MidiSeq> getStorage(){
+		return storage;
+	}
+	
+	public static Sound getSound(){
+		return instrumentSound;
+	}
+	
+	public static Map<Integer, Sound> getTrack(){
+		return tracks;
+	}
+	
 }
