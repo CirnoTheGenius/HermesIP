@@ -1,16 +1,14 @@
 package com.tenko.functions;
 
 import com.tenko.FriendlyWall;
+import com.tenko.nms.NMSLib;
+import com.tenko.objs.ConfirmationCommand;
 import com.tenko.objs.TenkoCmd;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.block.Block;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -20,39 +18,26 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.vehicle.VehicleDestroyEvent;
-import org.bukkit.inventory.ItemStack;
 
 public class MinecartLogger extends Function {
 	
 	boolean isConfirming = false;
-	Class<?> nmsWorld;
-	Class<?> craftWorld;
-	Class<?> nmsEntityMinecart;
-	Class<?> nmsMinecartItem;
-	Class<?> craftItemStack;
-
-	public MinecartLogger(){
-		try {
-			String version = FriendlyWall.getVersion();
-			nmsWorld = Class.forName("net.minecraft.server." + version + ".World");
-			nmsEntityMinecart = Class.forName("net.minecraft.server." + version + ".EntityMinecartAbstract");
-			nmsMinecartItem = Class.forName("net.minecraft.server." + version + ".ItemMinecart");
-				
-			craftWorld = Class.forName("org.bukkit.craftbukkit." + version + ".CraftWorld");
-			craftItemStack = Class.forName("org.bukkit.craftbukkit." + version + ".inventory.CraftItemStack");
-		} catch (Exception e){
-			e.printStackTrace();
-		}
-	}
 
 	@Override
 	public boolean onCommand(final CommandSender cs, Command c, String l, String[] args){	
-		if(cs.equals(Bukkit.getConsoleSender()) && c.getName().equalsIgnoreCase("minecartlogwipe")){
+		if(cs.isOp() && c.getName().equalsIgnoreCase("minecartlogwipe")){
 			if(args.length < 1){
-				this.result = "Are you sure!? (Type \"minecartlogyes\", otherwise, this command will timeout in 10 seconds.)";
+				cs.sendMessage(ChatColor.RED + "Are you sure!? (Type \"minecartlogyes\", otherwise, this command will timeout in 10 seconds.)");
 				this.isConfirming = true;
 
-				final TenkoCmd cmd = FriendlyWall.registerCommand("minecartlogyes", new confirmationCommand());
+				final TenkoCmd cmd = FriendlyWall.registerCommand("minecartlogyes", new ConfirmationCommand("minecartlogyes", cs.getName(), new Runnable(){
+					@Override
+					public void run(){
+						for(File f : FriendlyWall.getFunctionDirectory("MinecartLogger").listFiles()){
+							f.delete();
+						}
+					}
+				}));
 
 				Bukkit.getScheduler().scheduleSyncDelayedTask(FriendlyWall.getPlugin(), new Runnable(){
 					@Override
@@ -67,13 +52,11 @@ public class MinecartLogger extends Function {
 			} else {
 				File f = new File(FriendlyWall.getFunctionDirectory("MinecartLogger"), args[0] + ".yml");
 				if(f.delete()){
-					this.result = "Deleted player data for " + args[0] + "!";
+					cs.sendMessage(ChatColor.RED + "Deleted player data for " + args[0] + "!");
 				} else {
-					this.result = "Failed to delete data! Does the user even exist?";
+					cs.sendMessage(ChatColor.RED + "Failed to delete data! Does the user even exist?");
 				}
 			}
-
-			cs.sendMessage((this.successful ? ChatColor.BLUE : ChatColor.RED) + "[FriendlyWall - MoblessWorlds] " + this.result);
 		}
 
 		return false;
@@ -89,33 +72,16 @@ public class MinecartLogger extends Function {
 				return;
 			}
 
-			spawnCart(e.getPlayer(), e.getClickedBlock());
+			NMSLib.spawnCart(e.getPlayer(), e.getClickedBlock());
 		}
 	}
-
-	public void spawnCart(Player plyr, Block b){
-		try {
-			Object cbWorld = this.craftWorld.cast(plyr.getWorld());
-			Object nmsWorldObj = cbWorld.getClass().getMethod("getHandle", new Class[0]).invoke(cbWorld, new Object[0]);
-			Object nmsCopy = this.craftItemStack.getMethod("asNMSCopy", new Class[] { ItemStack.class }).invoke(null, new Object[] { plyr.getItemInHand() });
-			Object nmsCopyNo2 = nmsCopy.getClass().getMethod("getItem", new Class[0]).invoke(nmsCopy, new Object[0]);
-			Object itemCart = this.nmsMinecartItem.cast(nmsCopyNo2);
-			Field f = itemCart.getClass().getField("a");
-			f.setAccessible(true);
-			Object entityMinecart = this.nmsEntityMinecart.getMethod("a", new Class[] { Class.forName("net.minecraft.server." + FriendlyWall.getVersion() + ".World"), Double.TYPE, Double.TYPE, Double.TYPE, Integer.TYPE }).invoke(null, new Object[] { nmsWorldObj, Double.valueOf(b.getX() + 0.5D), Double.valueOf(b.getY() + 0.5D), Double.valueOf(b.getZ() + 0.5D), f.get(itemCart) });
-			f.setAccessible(false);
-
-			nmsWorldObj.getClass().getMethod("addEntity", new Class[] { Class.forName("net.minecraft.server." + FriendlyWall.getVersion() + ".Entity") }).invoke(nmsWorldObj, new Object[] { entityMinecart });
-			plyr.setItemInHand(null);
-		} catch (IllegalAccessException|IllegalArgumentException|InvocationTargetException|NoSuchMethodException|SecurityException|NoSuchFieldException|ClassNotFoundException e){
-			e.printStackTrace();
-		}
-	}
-
+	
 	@EventHandler
 	public void minecartDeathEvent(VehicleDestroyEvent e){
-		if(e.getVehicle().getType().toString().contains("MINECART") && e.getAttacker().getType() == EntityType.PLAYER && !((Player)e.getAttacker()).getPlayer().hasPermission("friendlywall.minecartlogger.ignore")){
-			logEvent(((Player)e.getAttacker()).getName(), e.getVehicle().getWorld().getName(), Result.DESTROY);
+		if(e.getAttacker() != null){
+			if(e.getVehicle().getType().toString().contains("MINECART") && e.getAttacker().getType() == EntityType.PLAYER && !((Player)e.getAttacker()).getPlayer().hasPermission("friendlywall.minecartlogger.ignore")){
+				logEvent(((Player)e.getAttacker()).getName(), e.getVehicle().getWorld().getName(), Result.DESTROY);
+			}
 		}
 	}
 
@@ -149,20 +115,5 @@ public class MinecartLogger extends Function {
 	private static enum Result
 	{
 		CREATE, DESTROY;
-	}
-
-	private final class confirmationCommand implements CommandExecutor {
-		
-		@Override
-		public boolean onCommand(CommandSender cs, Command c, String l, String[] a){
-			if(c.getName().equalsIgnoreCase("minecartlogyes")){
-				isConfirming = false;
-				for (File f : FriendlyWall.getFunctionDirectory("MinecartLogger").listFiles()){
-					f.delete();
-				}
-				cs.sendMessage(ChatColor.BLUE + "[FriendlyWall - MinecartLogger] Cleared entire logging directory!");
-			}
-			return false;
-		}
 	}
 }

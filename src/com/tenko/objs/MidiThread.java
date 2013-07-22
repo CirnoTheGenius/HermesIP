@@ -16,12 +16,13 @@ public class MidiThread extends Thread {
 	private final boolean loop;
 	private final String url;
 
-	public MidiThread(Player plyr, String url, boolean loop){
-		this.plyr = plyr;
-		this.loop = loop;
-		this.url = url;
+	public MidiThread(Player player, String theUrl, boolean shouldLoop){
+		this.plyr = player;
+		this.loop = shouldLoop;
+		this.url = theUrl;
 	}
 
+	@SuppressWarnings("resource")
 	@Override
 	public void run(){
 		try {

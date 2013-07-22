@@ -13,9 +13,6 @@ import com.tenko.objs.TenkoCmd;
 //Lazy man's way of implementing two classes.
 public abstract class Function implements Listener, CommandExecutor {
 	
-	boolean successful = false;
-	String result = "No result!";
-	
 	protected ArrayList<TenkoCmd> cmds = new ArrayList<TenkoCmd>();
 	
 	@Override

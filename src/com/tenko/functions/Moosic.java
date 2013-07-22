@@ -47,10 +47,9 @@ public class Moosic extends Function {
 						
 						cs.sendMessage(ChatColor.BLUE + "Playing " + args[0]);
 						return true;
-					} else {
-						cs.sendMessage(ChatColor.RED + "Wheres the argument, baka!?");
-						return true;
 					}
+					cs.sendMessage(ChatColor.RED + "Wheres the argument, baka!?");
+					return true;
 				} catch (ClassCastException e){
 					cs.sendMessage(ChatColor.RED + "You must be a player!");
 					return true;

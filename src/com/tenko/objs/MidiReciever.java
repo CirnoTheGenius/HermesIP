@@ -19,8 +19,8 @@ public class MidiReciever implements Receiver {
 	private Map<Integer, Integer> channelPatches;
 	private Player plyr;
 
-	public MidiReciever(Player plyr){
-		this.plyr = plyr;
+	public MidiReciever(Player player){
+		this.plyr = player;
 		this.channelPatches = Maps.newHashMap();
 	}
 
@@ -29,6 +29,7 @@ public class MidiReciever implements Receiver {
 		plyr = null;
 	}
 
+	@SuppressWarnings("incomplete-switch")
 	@Override
 	public void send(MidiMessage msg, long time) {
 		if(msg instanceof ShortMessage){
@@ -76,7 +77,7 @@ public class MidiReciever implements Receiver {
 	}
 
 	public double midiToPitch(ShortMessage m){
-		return Math.pow(2, (new Note((m.getData1() - 54 % 12) % 24).getId() - (byte)new Note(1, Tone.F, true).getId()) / 12.0);
+		return Math.pow(2, (new Note((m.getData1() - 54 % 12) % 24).getId() - new Note(1, Tone.F, true).getId()) / 12.0);
 	}
 
 }

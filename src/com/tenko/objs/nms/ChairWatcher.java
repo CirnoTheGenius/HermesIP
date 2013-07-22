@@ -1,10 +1,10 @@
-package com.tenko.objs;
+package com.tenko.objs.nms;
 
 import java.util.ArrayList;
 
 import com.tenko.FriendlyWall;
 
-import net.minecraft.server.v1_5_R3.DataWatcher;
+import net.minecraft.server.v1_6_R2.*;
 
 public class ChairWatcher extends DataWatcher {
 

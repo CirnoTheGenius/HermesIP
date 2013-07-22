@@ -1,19 +1,32 @@
-package com.tenko.functions;
+package com.tenko.functions.Listen;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 
 import com.tenko.FriendlyWall;
-import com.tenko.yaml.YamlWriter;
 
-public class NoMobs extends Function {
+public class NoMobs extends Listen {
 	
+	private final static String functionName = "NoMobs";
+	private final static String yamlName = "mobless";
+	private final static String listName = "mobless-worlds";
+	
+	public NoMobs(){
+		super("mobless", functionName, yamlName, listName);
+	}
+	
+	@Override
+	public boolean callMeMaybe(CommandSender cs, String[] args){
+		if(Bukkit.getServer().getWorld(args[0]) == null){
+			cs.sendMessage(ChatColor.RED + "That world doesn't exist!");
+			return false;
+		}
+		return true;
+	}
+
 	@EventHandler
 	public void noSpawn(CreatureSpawnEvent e){
 		if(cannotSpawn(e.getLocation().getWorld().getName())){
@@ -21,64 +34,8 @@ public class NoMobs extends Function {
 		}
 	}
 
-	@Override
-	public boolean onCommand(CommandSender cs, Command c, String l, String[] args){
-		if(cs.equals(Bukkit.getConsoleSender())){
-			if(c.getName().equalsIgnoreCase("moblessadd")){
-				if(args.length < 1){
-					result = "You didn't supply an argument!";
-				} else if(!isRealWorld(args[0])){
-					result = "That world doesn't exist!";
-				} else if(!YamlWriter.writeToList(args[0], "MoblessWorlds")){
-					result = "That world already denies mob spawning!";
-				} else {
-					result = "Removed all tenctacles! Added " + ChatColor.YELLOW + args[0] + ".";
-					successful = true;
-				}
-				
-				for(Entity e : Bukkit.getWorld(args[0]).getEntities()){
-					if(e.getType() != EntityType.PLAYER){
-						e.remove();
-					}
-				}
-
-				cs.sendMessage((successful ? ChatColor.BLUE : ChatColor.RED) + "[FriendlyWall - MoblessWorlds] " + result);
-				return true;
-			}
-
-			if(c.getName().equalsIgnoreCase("moblessrem")){
-				if(args.length < 1){
-					result = "You didn't supply an argument!";
-				} else if(!YamlWriter.removeFromList(args[0], "MoblessWorlds")){
-					result = "That world isn't set to deny mob spawning!";
-				} else {
-					result = "Removed \"" + ChatColor.YELLOW + args[0] + "\".";
-					successful = true;
-				}
-
-				cs.sendMessage((successful ? ChatColor.BLUE : ChatColor.RED) + "[FriendlyWall - MoblessWorlds] " + result);
-				return true;
-			}
-
-			if(c.getName().equalsIgnoreCase("moblesslist")){
-				cs.sendMessage(ChatColor.BLUE + "[FriendlyWall - MoblessWorlds] Current mobless worlds:");
-				for(String warudo : YamlWriter.getList("MoblessWorlds")){
-					cs.sendMessage(ChatColor.YELLOW + "- " + warudo);
-				}
-				return true;
-			}
-		} else {
-			cs.sendMessage("Unknown command. Type \"help\" for help.");
-			return true;
-		}
-		return false;
-	}
-
 	private boolean cannotSpawn(String worldName){
-		return FriendlyWall.getPlugin().getConfig().getStringList("MoblessWorlds").contains(worldName);
+		return FriendlyWall.getPlugin().getConfig().getStringList(listName).contains(worldName);
 	}
-
-	private boolean isRealWorld(String worldName){
-		return Bukkit.getServer().getWorld(worldName) != null;
-	}
+	
 }

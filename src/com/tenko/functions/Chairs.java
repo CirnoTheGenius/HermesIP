@@ -19,9 +19,10 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.material.Stairs;
+import org.bukkit.material.Step;
 
 import com.tenko.FriendlyWall;
-import com.tenko.objs.ChairWatcher;
+import com.tenko.objs.nms.ChairWatcher;
 
 public class Chairs extends Function {
 
@@ -45,7 +46,7 @@ public class Chairs extends Function {
 	@EventHandler
 	public void onPlayerToggleSneak(PlayerToggleSneakEvent event) {
 		if(event.getPlayer().isSneaking() && FriendlyWall.getSitters().containsKey(event.getPlayer())){
-			event.setCancelled(true);
+			sendSit();
 		}
 	}
 
@@ -76,7 +77,7 @@ public class Chairs extends Function {
 
 
 	@EventHandler
-	public void Ragequit(PlayerQuitEvent event){
+	public void Ragequit(PlayerQuitEvent event){	
 		if(FriendlyWall.getSitters().containsKey(event.getPlayer().getName())){
 			stopSittingOnMe(event.getPlayer());
 			Location p = event.getPlayer().getLocation().clone();
@@ -163,9 +164,9 @@ public class Chairs extends Function {
 					e1.printStackTrace();
 					e.getPlayer().sendMessage(ChatColor.RED + "Sitting is broken. Tell Tenko that the error was " + e1 + ".");
 				}
-			} else if(e.getClickedBlock().getType() == Material.BED_BLOCK){
+			} else if(e.getClickedBlock().getType() == Material.BED_BLOCK || e.getClickedBlock().getState().getData() instanceof Step || e.getClickedBlock().getType() == Material.RED_ROSE){
 				try {
-					Location nLocation = e.getClickedBlock().getLocation().clone();
+					Location nLocation = e.getClickedBlock().getLocation().clone();	
 					nLocation.add(0.5D, 0.3D, 0.5D);
 
 					e.getPlayer().teleport(nLocation);

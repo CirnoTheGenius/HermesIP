@@ -4,6 +4,7 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -11,20 +12,24 @@ import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandMap;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.tenko.bot.EntityMika;
 import com.tenko.cmdexe.CommanderCirno;
 import com.tenko.objs.TenkoCmd;
 
 import com.tenko.functions.Chairs;
 import com.tenko.functions.GCForce;
-import com.tenko.functions.IPBan;
 import com.tenko.functions.MinecartLogger;
 import com.tenko.functions.Moosic;
+import com.tenko.functions.NPCs;
 import com.tenko.functions.NazrinBlocks;
-import com.tenko.functions.NoMobs;
-import com.tenko.functions.PassiveBeds;
-import com.tenko.functions.VineStunner;
+import com.tenko.functions.Listen.IPBan;
+import com.tenko.functions.Listen.NoMobs;
+import com.tenko.functions.Listen.PassiveBeds;
+import com.tenko.functions.Listen.VineStunner;
 
 /*
  * Log entry when I feel like it:
@@ -72,6 +77,9 @@ import com.tenko.functions.VineStunner;
  * 		http://www.youtube.com/watch?v=JI0jAW7s0YY
  * 	Eh, I don't have anything to put here. 
  * 
+ * 7/18/13:
+ * 	Made chairs! Took some code from Chairs Reloaded and added my own touch to it.
+ * 
  * 9/9/99:
  * 	I accidentally wipe my entire GitHub repository and run 9 magnets
  * 	through my hard drive, losing all source code. I also accidentally
@@ -84,84 +92,96 @@ import com.tenko.functions.VineStunner;
  * 	We tried.
  */
 public class FriendlyWall extends JavaPlugin {
-	
+
 	private static FriendlyWall instance;
-	
+
 	//Hacks.
 	private static CommandMap map;
+	
 	private static HashMap<String, Command> knownCommands;
 	private static HashMap<String, Location> sitters = new HashMap<String, Location>();
+	private static ConcurrentHashMap<String, EntityMika> npcs = new ConcurrentHashMap<String, EntityMika>();
+	
 	private FunctionManager fm;
+	
 	private static String packageName = Bukkit.getServer().getClass().getPackage().getName();
 	private static String version = packageName.substring(packageName.lastIndexOf(".") + 1);
-	
+
 	@Override
 	public void onEnable(){
-		instance = this;
-		
-		//This is VERY important. Never remove. Ever. No matter what.
-		Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "O" + ChatColor.GOLD + "p" + ChatColor.YELLOW + "e" + ChatColor.GREEN + "r" + ChatColor.BLUE + "a" + ChatColor.LIGHT_PURPLE + "t" + ChatColor.RED + "i" + ChatColor.GOLD + "o" + ChatColor.YELLOW + "n" + " " + ChatColor.GREEN + "F" + ChatColor.BLUE + "r" + ChatColor.LIGHT_PURPLE + "i" + ChatColor.RED + "e" + ChatColor.GOLD + "n" + ChatColor.YELLOW + "d" + ChatColor.GREEN + "l" + ChatColor.BLUE + "y" + ChatColor.LIGHT_PURPLE + "W" + ChatColor.RED + "a" + ChatColor.GOLD + "l" + ChatColor.YELLOW + "l" + ChatColor.GREEN + ":" + " " + ChatColor.BLUE + "C" + ChatColor.LIGHT_PURPLE + "o" + ChatColor.RED + "m" + ChatColor.GOLD + "m" + ChatColor.YELLOW + "e" + ChatColor.GREEN + "n" + ChatColor.BLUE + "c" + ChatColor.LIGHT_PURPLE + "e" + ChatColor.RED + "!");
-		Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "R" + ChatColor.GOLD + "a" + ChatColor.YELLOW + "i" + ChatColor.GREEN + "n" + ChatColor.BLUE + "b" + ChatColor.LIGHT_PURPLE + "o" + ChatColor.RED + "w" + ChatColor.GOLD + "s" + " " + ChatColor.YELLOW + "m" + ChatColor.GREEN + "e" + ChatColor.BLUE + "a" + ChatColor.LIGHT_PURPLE + "n" + ChatColor.RED + "s" + " " + ChatColor.GOLD + "f" + ChatColor.YELLOW + "r" + ChatColor.GREEN + "i" + ChatColor.BLUE + "e" + ChatColor.LIGHT_PURPLE + "n" + ChatColor.RED + "d" + ChatColor.GOLD + "s" + ChatColor.YELLOW + "h" + ChatColor.GREEN + "i" + ChatColor.BLUE + "p" + " " + ChatColor.LIGHT_PURPLE + "w" + ChatColor.RED + "h" + ChatColor.GOLD + "i" + ChatColor.YELLOW + "c" + ChatColor.GREEN + "h" + " " + ChatColor.BLUE + "m" + ChatColor.LIGHT_PURPLE + "e" + ChatColor.RED + "a" + ChatColor.GOLD + "n" + ChatColor.YELLOW + "s" + " " + ChatColor.GREEN + "u" + ChatColor.BLUE + "n" + ChatColor.LIGHT_PURPLE + "b" + ChatColor.RED + "a" + ChatColor.GOLD + "n" + " " + ChatColor.YELLOW + "k" + ChatColor.GREEN + "a" + ChatColor.BLUE + "d" + ChatColor.LIGHT_PURPLE + "a" + ChatColor.RED + "p" + ChatColor. GOLD + "u" + ChatColor.YELLOW + "n" + ChatColor.GREEN + "n" + ChatColor.BLUE + "y" + ChatColor.LIGHT_PURPLE + "!");
-	
-		//Reflection. wstfgl. help.
 		try {
-			final Field cmdMap = Class.forName("org.bukkit.craftbukkit." + version + ".CraftServer").getDeclaredField("commandMap");
-			cmdMap.setAccessible(true);
-			map = (CommandMap)cmdMap.get(Bukkit.getServer());
-			final Field kwnCmd = map.getClass().getDeclaredField("knownCommands");
-			kwnCmd.setAccessible(true);
-			knownCommands = (HashMap<String, Command>)kwnCmd.get(map);
+			instance = this;
+
+			//This is VERY important. Never remove. Ever. No matter what.
+			Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "O" + ChatColor.GOLD + "p" + ChatColor.YELLOW + "e" + ChatColor.GREEN + "r" + ChatColor.BLUE + "a" + ChatColor.LIGHT_PURPLE + "t" + ChatColor.RED + "i" + ChatColor.GOLD + "o" + ChatColor.YELLOW + "n" + " " + ChatColor.GREEN + "F" + ChatColor.BLUE + "r" + ChatColor.LIGHT_PURPLE + "i" + ChatColor.RED + "e" + ChatColor.GOLD + "n" + ChatColor.YELLOW + "d" + ChatColor.GREEN + "l" + ChatColor.BLUE + "y" + ChatColor.LIGHT_PURPLE + "W" + ChatColor.RED + "a" + ChatColor.GOLD + "l" + ChatColor.YELLOW + "l" + ChatColor.GREEN + ":" + " " + ChatColor.BLUE + "C" + ChatColor.LIGHT_PURPLE + "o" + ChatColor.RED + "m" + ChatColor.GOLD + "m" + ChatColor.YELLOW + "e" + ChatColor.GREEN + "n" + ChatColor.BLUE + "c" + ChatColor.LIGHT_PURPLE + "e" + ChatColor.RED + "!");
+			Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "R" + ChatColor.GOLD + "a" + ChatColor.YELLOW + "i" + ChatColor.GREEN + "n" + ChatColor.BLUE + "b" + ChatColor.LIGHT_PURPLE + "o" + ChatColor.RED + "w" + ChatColor.GOLD + "s" + " " + ChatColor.YELLOW + "m" + ChatColor.GREEN + "e" + ChatColor.BLUE + "a" + ChatColor.LIGHT_PURPLE + "n" + ChatColor.RED + "s" + " " + ChatColor.GOLD + "f" + ChatColor.YELLOW + "r" + ChatColor.GREEN + "i" + ChatColor.BLUE + "e" + ChatColor.LIGHT_PURPLE + "n" + ChatColor.RED + "d" + ChatColor.GOLD + "s" + ChatColor.YELLOW + "h" + ChatColor.GREEN + "i" + ChatColor.BLUE + "p" + " " + ChatColor.LIGHT_PURPLE + "w" + ChatColor.RED + "h" + ChatColor.GOLD + "i" + ChatColor.YELLOW + "c" + ChatColor.GREEN + "h" + " " + ChatColor.BLUE + "m" + ChatColor.LIGHT_PURPLE + "e" + ChatColor.RED + "a" + ChatColor.GOLD + "n" + ChatColor.YELLOW + "s" + " " + ChatColor.GREEN + "u" + ChatColor.BLUE + "n" + ChatColor.LIGHT_PURPLE + "b" + ChatColor.RED + "a" + ChatColor.GOLD + "n" + " " + ChatColor.YELLOW + "k" + ChatColor.GREEN + "a" + ChatColor.BLUE + "d" + ChatColor.LIGHT_PURPLE + "a" + ChatColor.RED + "p" + ChatColor. GOLD + "u" + ChatColor.YELLOW + "n" + ChatColor.GREEN + "n" + ChatColor.BLUE + "y" + ChatColor.LIGHT_PURPLE + "!");
+
+			//Reflection. wstfgl. help.
+			try {
+				final Field cmdMap = Class.forName("org.bukkit.craftbukkit." + version + ".CraftServer").getDeclaredField("commandMap");
+				cmdMap.setAccessible(true);
+				map = (CommandMap)cmdMap.get(Bukkit.getServer());
+				final Field kwnCmd = map.getClass().getDeclaredField("knownCommands");
+				kwnCmd.setAccessible(true);
+				knownCommands = (HashMap<String, Command>)kwnCmd.get(map);
+
+				kwnCmd.setAccessible(false);
+				cmdMap.setAccessible(false);
+			} catch (Exception e){
+				e.printStackTrace();
+			}
+
+			//Find a way to manage this later.
+			//edit: Found a better way :3
+			CommanderCirno.startFunction();
+
+			fm = new FunctionManager();
+			fm.add(NoMobs.class);
+			fm.add(IPBan.class);
+			fm.add(PassiveBeds.class);
+			fm.add(VineStunner.class);
 			
-			kwnCmd.setAccessible(false);
-			cmdMap.setAccessible(false);
+			fm.add(Chairs.class);
+			fm.add(NazrinBlocks.class);
+			
+			fm.add(MinecartLogger.class, "minecartlogwipe");
+			fm.add(Moosic.class, "moosic", "moosicstop", "moosicsound", "moosictrack");
+			fm.add(GCForce.class, "gcforce", "hcdebugmatch", "dumpallthreads", "atmptstoptenkothread", "dumptenkothreads");
+			fm.add(NPCs.class, "newnpc", "removenpc", "rotatenpc", "removeallnpcs", "walknpc", "telenpc");
 		} catch (Exception e){
-			e.printStackTrace();
+			Bukkit.getServer().broadcastMessage("Plugin is bork. Tell Tenko: ");
+			Bukkit.getServer().broadcastMessage(e.toString());
 		}
-		
-		//Find a way to manage this later.
-		//edit: Found a better way :3
-		CommanderCirno.startFunction();
-		
-		fm = new FunctionManager();
-		fm.add(NoMobs.class, "moblessadd", "moblessrem", "moblesslist");
-		fm.add(IPBan.class, "banip", "pardonip", "iplist");
-		fm.add(MinecartLogger.class, "minecartlogwipe");
-		fm.add(PassiveBeds.class, "passiveadd", "passiverem", "passivelist");
-		fm.add(VineStunner.class, "vinestunadd", "vinestunrem", "vinestunlist");
-		fm.add(NazrinBlocks.class, (String[])null);
-		fm.add(Moosic.class, "moosic", "moosicstop", "moosicsound", "moosictrack");
-		fm.add(GCForce.class, "gcforce", "hcdebugmatch", "dumpallthreads", "atmptstoptenkothread", "dumptenkothreads");
-		fm.add(Chairs.class, (String[])null);
 	}
-	
+
 	@Override
 	public void onDisable(){
 		this.saveConfig();
 		CommanderCirno.stopFunction();
 		fm.removeAll();
-		
+
 		for(String s : getSitters().keySet()){
 			Chairs.onDisabledStopSitting(Bukkit.getPlayer(s));
 		}
-		
+
 	}
-	
+
 	public static void disablePlugin(){
 		Bukkit.getPluginManager().disablePlugin(FriendlyWall.getPlugin());
 	}
-	
+
 	public static FriendlyWall getPlugin(){
 		return instance;
 	}
-	
+
 	public static String getVersion(){
 		return version;
 	}
-	
+
 	public static Map<String, Location> getSitters(){
 		return sitters;
 	}
-	
+
 	/**
 	 * Dynamic command registering.
 	 */
@@ -172,16 +192,16 @@ public class FriendlyWall extends JavaPlugin {
 			theCmd.setExecutor(exe);
 			return theCmd;
 		}
-		
+
 		return null;
 	}
-	
+
 	public static void unregisterCommand(TenkoCmd cmd){
 		if(knownCommands.get(cmd.getName()).toString().startsWith("com.tenko.objs.TenkoCmd")){
 			knownCommands.remove(cmd.getName());
 		}
 	}
-	
+
 	public static File getFunctionDirectory(String s){
 		File folder = new File(FriendlyWall.getPlugin().getDataFolder(), s);
 		if(!folder.exists()){
@@ -190,6 +210,18 @@ public class FriendlyWall extends JavaPlugin {
 		return folder;
 	}
 	
+	public static FileConfiguration getFunctionYaml(String name, String yaml){
+		return YamlConfiguration.loadConfiguration(getFunctionFile(name, yaml));
+	}
+	
+	public static File getFunctionFile(String name, String yaml){
+		return new File(getFunctionDirectory(name), yaml + ".yml");
+	}
+	
+	public static ConcurrentHashMap<String, EntityMika> getNpcList(){
+		return npcs;
+	}
+
 	/**
 	 * The wonderful color function.
 	 * @param s - The message to be rainbow'd.
@@ -204,7 +236,7 @@ public class FriendlyWall extends JavaPlugin {
 				"BLUE",
 				"LIGHT_PURPLE"
 		};
-		
+
 		int i=0;
 		StringBuffer b = new StringBuffer();
 		for(char c : s.toCharArray()){
@@ -222,5 +254,5 @@ public class FriendlyWall extends JavaPlugin {
 		}
 		return b.toString();
 	}
-	
+
 }

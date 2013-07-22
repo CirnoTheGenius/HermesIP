@@ -8,8 +8,8 @@ public class MidiSeq {
 	private Sequencer a;
 	private MidiReciever b;
 	
-	public MidiSeq(Sequencer a, MidiReciever midi){
-		this.a = a;
+	public MidiSeq(Sequencer seq, MidiReciever midi){
+		this.a = seq;
 		this.b = midi;
 	}
 	

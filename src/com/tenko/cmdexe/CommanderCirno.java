@@ -22,7 +22,6 @@ public class CommanderCirno implements CommandExecutor{
 		cmds = new TenkoCmd[]{ 
 				FriendlyWall.registerCommand("fwreload", this), 
 				FriendlyWall.registerCommand("fwinfo", this), 
-				FriendlyWall.registerCommand("fwupdate", this),
 				FriendlyWall.registerCommand("fwlistplugindir", this),
 		};
 	}
@@ -39,7 +38,7 @@ public class CommanderCirno implements CommandExecutor{
 	
 	@Override
 	public boolean onCommand(CommandSender cs, Command c, String l, String[] args){
-		if(cs.equals(Bukkit.getConsoleSender()) || cs.isOp()){
+		if(cs.isOp()){
 			if(c.getName().equalsIgnoreCase("fwreload")){
 				try {
 					FriendlyWall.getPlugin().getConfig().load(new File(FriendlyWall.getPlugin().getDataFolder(), "config.yml"));
@@ -55,7 +54,7 @@ public class CommanderCirno implements CommandExecutor{
 					e.printStackTrace();
 				}
 			} else if(c.getName().equalsIgnoreCase("fwinfo")){
-				cs.sendMessage(ChatColor.GOLD + "Project FriendlyWall [Version 1.1.9ac]");
+				cs.sendMessage(ChatColor.GOLD + "Project FriendlyWall [Version 1.2.0f]");
 				cs.sendMessage(ChatColor.BLUE + "Coding by Tenko/Tsunko");
 				cs.sendMessage(ChatColor.BLUE + "Idea by Remi_Scarlet");
 				cs.sendMessage(ChatColor.BLUE + "This plugin is private and to be used only for YukkuriCraft. Any other server, you probably compiled this yourself. Congratulations, you are winrar.");
