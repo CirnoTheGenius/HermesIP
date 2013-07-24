@@ -4,6 +4,7 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
@@ -147,7 +148,7 @@ public class FriendlyWall extends JavaPlugin {
 			fm.add(MinecartLogger.class, "minecartlogwipe");
 			fm.add(Moosic.class, "moosic", "moosicstop", "moosicsound", "moosictrack");
 			fm.add(GCForce.class, "gcforce", "hcdebugmatch", "dumpallthreads", "atmptstoptenkothread", "dumptenkothreads");
-			fm.add(NPCs.class, "newnpc", "removenpc", "rotatenpc", "removeallnpcs", "walknpc", "telenpc");
+			fm.add(NPCs.class, "newnpc", "removenpc", "rotatenpc", "removeallnpcs", "walknpc", "telenpc", "lookatme", "npcchat");
 		} catch (Exception e){
 			Bukkit.getServer().broadcastMessage("Plugin is bork. Tell Tenko: ");
 			Bukkit.getServer().broadcastMessage(e.toString());
@@ -162,6 +163,10 @@ public class FriendlyWall extends JavaPlugin {
 
 		for(String s : getSitters().keySet()){
 			Chairs.onDisabledStopSitting(Bukkit.getPlayer(s));
+		}
+		
+		for(Entry<String, EntityMika> s : getNpcList().entrySet()){
+			s.getValue().die();
 		}
 
 	}

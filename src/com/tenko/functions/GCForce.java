@@ -27,7 +27,7 @@ public class GCForce extends Function {
 				cs.sendMessage(ChatColor.GOLD + "Arch: " + System.getProperty("os.arch"));
 				cs.sendMessage(ChatColor.GOLD + "OS Version: " + System.getProperty("os.version"));
 				return true;
-			} else if(c.getName().equalsIgnoreCase("dumpallthreads")){
+			} else if(c.getName().equalsIgnoreCase("	")){
 				Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
 				for(Thread t : threadSet){
 					cs.sendMessage(ChatColor.GOLD + "==" + t.getName() + "==");
