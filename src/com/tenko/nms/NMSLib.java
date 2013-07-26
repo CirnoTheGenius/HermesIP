@@ -113,4 +113,15 @@ public class NMSLib {
 
 		return null;
 	}
+
+	public static Object getCraftServer(){
+		try {
+			Class<?> craftserver = Class.forName("org.bukkit.craftbukkit." + version + ".CraftServer");
+			return craftserver.cast(Bukkit.getServer());
+		} catch (ClassNotFoundException|IllegalArgumentException|SecurityException e){
+			e.printStackTrace();
+		}
+
+		return null;
+	}
 }
