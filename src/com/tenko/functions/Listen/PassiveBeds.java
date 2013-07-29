@@ -1,4 +1,4 @@
-package com.tenko.functions.Listen;
+package com.tenko.functions.listen;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -11,7 +11,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 
 import com.tenko.FriendlyWall;
 
-public class PassiveBeds extends Listen {
+public class PassiveBeds extends TListener {
 	
 	private final static String functionName = "NoMobs";
 	private final static String yamlName = "passivebeds";

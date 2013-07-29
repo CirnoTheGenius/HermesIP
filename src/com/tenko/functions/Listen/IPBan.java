@@ -1,4 +1,4 @@
-package com.tenko.functions.Listen;
+package com.tenko.functions.listen;
 
 import java.net.InetAddress;
 import java.util.List;
@@ -10,9 +10,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerLoginEvent.Result;
 
-import com.tenko.FriendlyWall;
-
-public class IPBan extends Listen {
+public class IPBan extends TListener {
 	
 	private final static String functionName = "HermesIP";
 	private final static String yamlName = "banned";
@@ -30,7 +28,7 @@ public class IPBan extends Listen {
 	}
 
 	public boolean isBanned(InetAddress address) {
-		List<String> bans = FriendlyWall.getFunctionYaml(functionName, yamlName).getStringList(listName);
+		List<String> bans = config.getStringList(listName);
 
 		for(String s : bans){
 			if(address.getHostAddress().startsWith(s.contains("*") ? s.substring(0, s.indexOf("*")-1) : s)){

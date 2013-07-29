@@ -29,6 +29,7 @@ public class MidiReciever implements Receiver {
 		plyr = null;
 	}
 
+	@SuppressWarnings("incomplete-switch")
 	@Override
 	public void send(MidiMessage msg, long time) {
 		if(msg instanceof ShortMessage){

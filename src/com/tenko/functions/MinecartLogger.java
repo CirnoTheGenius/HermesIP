@@ -2,13 +2,15 @@ package com.tenko.functions;
 
 import com.tenko.FriendlyWall;
 import com.tenko.nms.NMSLib;
-import com.tenko.objs.ConfirmationCommand;
 import com.tenko.objs.TenkoCmd;
+
 import java.io.File;
 import java.io.IOException;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -20,7 +22,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.vehicle.VehicleDestroyEvent;
 
 public class MinecartLogger extends Function {
-	
+
 	boolean isConfirming = false;
 
 	@Override
@@ -28,16 +30,15 @@ public class MinecartLogger extends Function {
 		if(cs.isOp() && c.getName().equalsIgnoreCase("minecartlogwipe")){
 			if(args.length < 1){
 				cs.sendMessage(ChatColor.RED + "Are you sure!? (Type \"minecartlogyes\", otherwise, this command will timeout in 10 seconds.)");
-				this.isConfirming = true;
-
-				final TenkoCmd cmd = FriendlyWall.registerCommand("minecartlogyes", new ConfirmationCommand("minecartlogyes", cs.getName(), new Runnable(){
+				final TenkoCmd cmd = FriendlyWall.getRegister().registerCommand("", new CommandExecutor(){
 					@Override
-					public void run(){
-						for(File f : FriendlyWall.getFunctionDirectory("MinecartLogger").listFiles()){
+					public boolean onCommand(CommandSender cs, Command c, String l, String[] args){
+						for(File f : getFunctionDirectory("MinecartLogger").listFiles()){
 							f.delete();
 						}
+						return false;
 					}
-				}));
+				});
 
 				Bukkit.getScheduler().scheduleSyncDelayedTask(FriendlyWall.getPlugin(), new Runnable(){
 					@Override
@@ -45,12 +46,12 @@ public class MinecartLogger extends Function {
 						if(isConfirming){
 							cs.sendMessage(ChatColor.BLUE + "[FriendlyWall - MinecartLogger] Didn't answer in 10 seconds. Assuming \"no\".");
 						}
-						FriendlyWall.unregisterCommand(cmd);
+						FriendlyWall.getRegister().unregisterCommand(cmd);
 						isConfirming = false;
 					}
 				}, 200L);
 			} else {
-				File f = new File(FriendlyWall.getFunctionDirectory("MinecartLogger"), args[0] + ".yml");
+				File f = new File(getFunctionDirectory("MinecartLogger"), args[0] + ".yml");
 				if(f.delete()){
 					cs.sendMessage(ChatColor.RED + "Deleted player data for " + args[0] + "!");
 				} else {
@@ -75,7 +76,7 @@ public class MinecartLogger extends Function {
 			NMSLib.spawnCart(e.getPlayer(), e.getClickedBlock());
 		}
 	}
-	
+
 	@EventHandler
 	public void minecartDeathEvent(VehicleDestroyEvent e){
 		if(e.getAttacker() != null){
@@ -86,7 +87,7 @@ public class MinecartLogger extends Function {
 	}
 
 	public boolean logEvent(String plyrName, String worldName, Result create){
-		File file = new File(FriendlyWall.getFunctionDirectory("MinecartLogger"), plyrName + ".yml");
+		File file = new File(getFunctionDirectory("MinecartLogger"), plyrName + ".yml");
 		try {
 			file.createNewFile();
 		} catch (IOException e){

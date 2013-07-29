@@ -1,7 +1,8 @@
 package com.tenko.functions;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map.Entry;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -9,104 +10,78 @@ import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event.Result;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.Event.Result;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.material.Stairs;
 import org.bukkit.material.Step;
+import org.bukkit.util.Vector;
 
 import com.tenko.FriendlyWall;
-import com.tenko.objs.nms.ChairWatcher;
 
 public class Chairs extends Function {
 
-	private static Class<?> Packet40, CraftPlayer;
+	private static HashMap<String, Arrow> sitters = new HashMap<String, Arrow>();
 
 	public Chairs(){
-		try {
-			Packet40 = Class.forName("net.minecraft.server." + FriendlyWall.getVersion() + ".Packet40EntityMetadata");
-			CraftPlayer = Class.forName("org.bukkit.craftbukkit." + FriendlyWall.getVersion() + ".entity.CraftPlayer");
-		} catch(ClassNotFoundException e){
-			e.printStackTrace();
-		}
-	}
+		super();
 
-	@Override
-	public boolean onCommand(CommandSender cs, Command c, String l, String[] args){
-		//No commands.
-		return false;
-	}
-	
-	@EventHandler
-	public void onPlayerToggleSneak(PlayerToggleSneakEvent event) {
-		if(event.getPlayer().isSneaking() && FriendlyWall.getSitters().containsKey(event.getPlayer())){
-			sendSit();
-		}
-	}
-
-	@EventHandler
-	public void walkAway(PlayerMoveEvent e){
-		if(FriendlyWall.getSitters().containsKey(e.getPlayer().getName())){
-			if(e.getFrom().getY() < e.getTo().getY()){
-				e.getPlayer().sendMessage(ChatColor.YELLOW + "You have stopped sitting.");
-				stopSittingOnMe(e.getPlayer());
-				return;
-			}
-			Location to = FriendlyWall.getSitters().get(e.getPlayer().getName());
-			Location from = e.getPlayer().getLocation();
-
-			if(to.getWorld() == from.getWorld()){
-				if(from.distance(to) > 1){
-					e.getPlayer().sendMessage(ChatColor.YELLOW + "You have stopped sitting.");
-					stopSittingOnMe(e.getPlayer());
-				} else {
-					sendSitPacket(e.getPlayer());
-				}
-			} else {	
-				e.getPlayer().sendMessage(ChatColor.YELLOW + "You have stopped sitting.");
-				stopSittingOnMe(e.getPlayer());
-			}
-		}
-	}
-
-
-	@EventHandler
-	public void Ragequit(PlayerQuitEvent event){	
-		if(FriendlyWall.getSitters().containsKey(event.getPlayer().getName())){
-			stopSittingOnMe(event.getPlayer());
-			Location p = event.getPlayer().getLocation().clone();
-			p.setY(p.getY() + 1);
-			event.getPlayer().teleport(p, PlayerTeleportEvent.TeleportCause.PLUGIN);
-		}
-	}
-
-	@EventHandler
-	public void screwYoChair(BlockBreakEvent event){
-		if(!FriendlyWall.getSitters().isEmpty()){
-			ArrayList<String> standList = new ArrayList<String>();
-			for (String s : FriendlyWall.getSitters().keySet()) {
-				if(FriendlyWall.getSitters().get(s).equals(event.getBlock().getLocation())){
-					standList.add(s);
+		Bukkit.getScheduler().scheduleSyncRepeatingTask(FriendlyWall.getPlugin(), new Runnable(){
+			@Override
+			public void run(){
+				for(Entry<String, Arrow> p: sitters.entrySet()){
+					p.getValue().setTicksLived(1);
 				}
 			}
-			for(String s : standList){
-				Bukkit.getPlayer(s).sendMessage(ChatColor.YELLOW + "You have stopped sitting.");
-				stopSittingOnMe(Bukkit.getPlayer(s));
+		}, 20L, 20L);
+	}
+
+	@EventHandler
+	public void moveAway(PlayerMoveEvent e){
+		Player plyr = e.getPlayer();
+		if(sitters.containsKey(plyr.getName())){
+			if(plyr.getLocation().distanceSquared(sitters.get(plyr.getName()).getLocation()) >= 2D){
+				sitters.get(plyr.getName()).remove();
+				sitters.remove(plyr.getName());
+				plyr.sendMessage(ChatColor.YELLOW + "You have stopped sitting.");
 			}
-			standList.clear();
 		}
 	}
 
-	@SuppressWarnings("incomplete-switch")
 	@EventHandler
-	public void sitDown(PlayerInteractEvent e){
-		if(e.hasBlock() && !FriendlyWall.getSitters().containsKey(e.getPlayer()) && e.getPlayer().isSneaking() && e.getPlayer().getLocation().distance(e.getClickedBlock().getLocation()) < 2D){
+	public void Ragequit(final PlayerQuitEvent event){	
+		if(sitters.containsKey(event.getPlayer().getName())){
+			Arrow ar = sitters.get(event.getPlayer().getName());
+			ar.remove();
+			event.getPlayer().teleport(event.getPlayer().getLocation().add(0,3,0));
+			sitters.remove(event.getPlayer().getName());
+		}
+	}
+
+	@EventHandler
+	public void screwYoChair(final BlockBreakEvent event){
+		if(!sitters.isEmpty() && sitters.containsKey(event.getPlayer().getName())){
+			sitters.get(event.getPlayer().getName()).remove();
+			sitters.remove(event.getPlayer().getName());
+			Bukkit.getScheduler().scheduleSyncDelayedTask(FriendlyWall.getPlugin(), new Runnable(){
+				@Override
+				public void run(){
+					event.getPlayer().teleport(event.getPlayer().getLocation().add(0,1,0));
+				}
+			});
+			event.getPlayer().sendMessage(ChatColor.YELLOW + "You have stopped sitting.");
+		}
+	}
+
+	@EventHandler
+	public void sitDown(final PlayerInteractEvent e){
+		if(e.hasBlock() && e.getAction() == Action.RIGHT_CLICK_BLOCK && !sitters.containsKey(e.getPlayer().getName()) && e.getPlayer().isSneaking() && e.getPlayer().getLocation().distanceSquared(e.getClickedBlock().getLocation()) < 4D){
 			if(e.getClickedBlock().getRelative(BlockFace.DOWN).isLiquid()){
 				return;
 			}
@@ -126,143 +101,56 @@ public class Chairs extends Function {
 			if(e.getClickedBlock().getType().toString().contains("STAIR")){
 				Stairs s = (Stairs)e.getClickedBlock().getState().getData();
 
-				if (s.isInverted()) {
-					return;
+				if(s.isInverted()) return;
+
+				Location nLocation = e.getClickedBlock().getLocation().clone();
+				nLocation.add(0.5D, 0.2D, 0.5D);
+
+				switch (s.getDescendingDirection()) {
+				case NORTH:
+					nLocation.setYaw(180);
+					break;
+				case EAST:
+					nLocation.setYaw(-90);
+					break;
+				case SOUTH:
+					nLocation.setYaw(0);
+					break;
+				case WEST:
+					nLocation.setYaw(90);
+					break;
+				default:
+					break;
 				}
 
-				try {
-					Location nLocation = e.getClickedBlock().getLocation().clone();
-					nLocation.add(0.5D, 0.2D, 0.5D);
+				e.getPlayer().teleport(nLocation);
+				e.setUseInteractedBlock(Result.DENY);
+				e.setUseItemInHand(Result.DENY);
+				final Arrow arrow = e.getClickedBlock().getWorld().spawnArrow(nLocation, new Vector(0,0,0), 0, 0);
+				arrow.setVelocity(new Vector(0,0,0));
+				arrow.setPassenger(e.getPlayer());
+				e.getPlayer().setSneaking(false);
+				sitters.put(e.getPlayer().getName(), arrow);
+				e.getPlayer().sendMessage(ChatColor.YELLOW + "You have sat.");
+			} else if(e.getClickedBlock().getType() == Material.BED_BLOCK || e.getClickedBlock().getState().getData() instanceof Step || e.getClickedBlock().getTypeId() == 126){
+				Location nLocation = e.getClickedBlock().getLocation().clone();	
+				nLocation.add(0.5D, 0.3D, 0.5D);
 
-					switch (s.getDescendingDirection()) {
-					case NORTH:
-						nLocation.setYaw(180);
-						break;
-					case EAST:
-						nLocation.setYaw(-90);
-						break;
-					case SOUTH:
-						nLocation.setYaw(0);
-						break;
-					case WEST:
-						nLocation.setYaw(90);
-					}
-
-					e.getPlayer().teleport(nLocation);
-					e.getPlayer().setSneaking(true);
-					sendSitPacket(e.getPlayer());
-					FriendlyWall.getSitters().put(e.getPlayer().getName(), e.getClickedBlock().getLocation());
-					e.setUseInteractedBlock(Result.DENY);
-					e.getPlayer().sendMessage(ChatColor.YELLOW + "You have sat.");
-					FriendlyWall.getPlugin().getServer().getScheduler().runTaskLater(FriendlyWall.getPlugin(), new Runnable() {
-						@Override
-						public void run() {
-							sendSit();
-						}
-					}, 10); 
-				} catch (Exception e1) {
-					e1.printStackTrace();
-					e.getPlayer().sendMessage(ChatColor.RED + "Sitting is broken. Tell Tenko that the error was " + e1 + ".");
-				}
-			} else if(e.getClickedBlock().getType() == Material.BED_BLOCK || e.getClickedBlock().getState().getData() instanceof Step || e.getClickedBlock().getType() == Material.RED_ROSE){
-				try {
-					Location nLocation = e.getClickedBlock().getLocation().clone();	
-					nLocation.add(0.5D, 0.3D, 0.5D);
-
-					e.getPlayer().teleport(nLocation);
-					e.getPlayer().setSneaking(true);
-					sendSitPacket(e.getPlayer());
-					FriendlyWall.getSitters().put(e.getPlayer().getName(), e.getClickedBlock().getLocation());
-					e.setUseInteractedBlock(Result.DENY);
-					e.getPlayer().sendMessage(ChatColor.YELLOW + "You have sat.");
-					FriendlyWall.getPlugin().getServer().getScheduler().runTaskLater(FriendlyWall.getPlugin(), new Runnable() {
-						@Override
-						public void run() {
-							sendSit();
-						}
-					}, 10); 
-
-					e.setCancelled(true);
-				} catch (Exception e1) {
-					e1.printStackTrace();
-					e.getPlayer().sendMessage(ChatColor.RED + "Sitting is broken. Tell Tenko that the error was " + e1 + ".");
-				}
+				e.getPlayer().teleport(nLocation);
+				e.setUseInteractedBlock(Result.DENY);
+				e.setUseItemInHand(Result.DENY);
+				final Arrow arrow = e.getClickedBlock().getWorld().spawnArrow(nLocation, new Vector(0,0,0), 0, 0);
+				arrow.setVelocity(new Vector(0,0,0));
+				arrow.setPassenger(e.getPlayer());
+				e.getPlayer().setSneaking(false);
+				sitters.put(e.getPlayer().getName(), arrow);
+				e.getPlayer().sendMessage(ChatColor.YELLOW + "You have sat.");
 			}
 		}
 	}
 
-	private void sendPacket(Player p, byte b){
-		Object packet;
-		try {
-			packet = Packet40.getConstructor(int.class, Class.forName("net.minecraft.server." + FriendlyWall.getVersion() + ".DataWatcher"), boolean.class).newInstance(p.getEntityId(), new ChairWatcher(b), false);
-
-			for(Player onlinePlayer : Bukkit.getServer().getOnlinePlayers()) {
-				if(onlinePlayer.canSee(p) || onlinePlayer == p) {
-					if(onlinePlayer.getWorld().equals(p.getWorld())) {
-						try {
-							Object craft = CraftPlayer.cast(onlinePlayer);
-							Object hand = CraftPlayer.getMethod("getHandle").invoke(craft, (Object[])null);
-							Object con = hand.getClass().getField("playerConnection").get(hand);
-							con.getClass().getMethod("sendPacket", Class.forName("net.minecraft.server." + FriendlyWall.getVersion() + ".Packet")).invoke(con, packet);
-						} catch (Exception ex) {
-							ex.printStackTrace();
-						}
-					}
-				}
-			}
-		} catch (InstantiationException | IllegalAccessException
-				| IllegalArgumentException | InvocationTargetException
-				| NoSuchMethodException | SecurityException
-				| ClassNotFoundException e){
-			e.printStackTrace();
-		}
-	}
-
-	private void sendSitPacket(Player p){
-		sendPacket(p, (byte)4);
-	}
-
-	private void sendStandPacket(Player p){
-		sendPacket(p, (byte)0);
-	}
-
-	private void sendSit(){
-		for (String s : FriendlyWall.getSitters().keySet()) {
-			Player p = Bukkit.getPlayer(s);
-			if (p != null){
-				sendSitPacket(p);
-			}
-		}
-	}
-
-	private void stopSittingOnMe(Player p){
-		if (FriendlyWall.getSitters().containsKey(p.getName())) {
-			FriendlyWall.getSitters().remove(p.getName());
-		}
-
-		sendStandPacket(p);
-	}
-
-	//Aka, lazy copy/paste code.
-	public static void onDisabledStopSitting(Player p){
-		try {
-			Object packet = Packet40.getConstructor(int.class, Class.forName("net.minecraft.server." + FriendlyWall.getVersion() + ".DataWatcher"), boolean.class).newInstance(p.getEntityId(), new ChairWatcher((byte) 0), false);
-
-			for(Player onlinePlayer : Bukkit.getServer().getOnlinePlayers()) {
-				try {
-					Object craft = CraftPlayer.cast(onlinePlayer);
-					Object hand = CraftPlayer.getMethod("getHandle").invoke(craft, (Object[])null);
-					Object con = hand.getClass().getField("playerConnection").get(hand);
-					con.getClass().getMethod("sendPacket", Class.forName("net.minecraft.server." + FriendlyWall.getVersion() + ".Packet")).invoke(con, packet);
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}
-			}
-		} catch (InstantiationException | IllegalAccessException
-				| IllegalArgumentException | InvocationTargetException
-				| NoSuchMethodException | SecurityException
-				| ClassNotFoundException e){
-			e.printStackTrace();
-		}
+	@Override
+	public boolean onCommand(CommandSender cs, Command c, String l, String[] args){
+		return false;
 	}
 }

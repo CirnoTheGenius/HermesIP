@@ -11,11 +11,7 @@ public class NMSPacket {
 
 	public NMSPacket(String packetName){
 		try {
-			if(!modifiable){
-				throw new IllegalAccessException("Packet is sealed!");
-			}
-			
-			nmsPacket = Class.forName("net.minecraft.server." + FriendlyWall.getVersion() + "." + packetName);
+			nmsPacket = Class.forName("net.minecraft.server." + FriendlyWall.getCraftVersion() + "." + packetName);
 			packet = nmsPacket.newInstance();
 		} catch (ClassNotFoundException|InstantiationException|IllegalAccessException e){
 			e.printStackTrace();
@@ -31,6 +27,21 @@ public class NMSPacket {
 			}
 			
 			Field f = packet.getClass().getField(fieldName);
+			f.setAccessible(true);
+			f.set(packet, value);
+			f.setAccessible(false);
+		} catch (NoSuchFieldException|SecurityException|IllegalArgumentException|IllegalAccessException e){
+			e.printStackTrace();
+		}
+	}
+	
+	public void setDeclaredField(String fieldName, Object value){
+		try {
+			if(!modifiable){
+				throw new IllegalAccessException("Packet is sealed!");
+			}
+			
+			Field f = packet.getClass().getDeclaredField(fieldName);
 			f.setAccessible(true);
 			f.set(packet, value);
 			f.setAccessible(false);

@@ -1,4 +1,4 @@
-package com.tenko.functions.Listen;
+package com.tenko.functions.listen;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -9,7 +9,7 @@ import org.bukkit.event.block.BlockPhysicsEvent;
 
 import com.tenko.FriendlyWall;
 
-public class VineStunner extends Listen {
+public class VineStunner extends TListener {
 	
 	private final static String functionName = "VineStunner";
 	private final static String yamlName = "stunned";

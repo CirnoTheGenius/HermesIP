@@ -11,7 +11,7 @@ import org.bukkit.inventory.ItemStack;
 
 public class NMSLib {
 	
-	private static final String version = FriendlyWall.getVersion();
+	private static final String version = FriendlyWall.getCraftVersion();
 
 	public static void spawnCart(Player plyr, Block b){
 		try {
@@ -32,11 +32,12 @@ public class NMSLib {
 			Object entityMinecart = nmsEntityMinecart.getMethod("a", nmsWorld, Double.TYPE, Double.TYPE, Double.TYPE, Integer.TYPE).invoke(null, nmsWorldObj, Double.valueOf(b.getX() + 0.5D), Double.valueOf(b.getY() + 0.5D), Double.valueOf(b.getZ() + 0.5D), f.get(itemCart));
 			f.setAccessible(false);
 
-			nmsWorldObj.getClass().getMethod("addEntity", Class.forName("net.minecraft.server." + FriendlyWall.getVersion() + ".Entity")).invoke(nmsWorldObj, entityMinecart);
+			nmsWorldObj.getClass().getMethod("addEntity", Class.forName("net.minecraft.server." + FriendlyWall.getCraftVersion() + ".Entity")).invoke(nmsWorldObj, entityMinecart);
 			if(plyr.getItemInHand().getAmount() - 1 <= 0){
 				plyr.setItemInHand(null);
-			} else
+			} else {
 				plyr.getItemInHand().setAmount(plyr.getItemInHand().getAmount() - 1);
+			}
 		}
 		catch (IllegalAccessException|IllegalArgumentException|InvocationTargetException|NoSuchMethodException|SecurityException|NoSuchFieldException|ClassNotFoundException e){
 			e.printStackTrace();
