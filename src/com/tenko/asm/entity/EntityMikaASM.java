@@ -1,20 +1,24 @@
 package com.tenko.asm.entity;
 
 import java.util.ArrayList;
-
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import com.tenko.functions.NPCs;
+import com.tenko.visualnovel.Option;
 
 import net.minecraft.server.v1_6_R2.*;
 
 //Do not use. Meant for compiling to ASM.
 public class EntityMikaASM extends EntityPlayer implements IMika {
 	
+	private ArrayList<Option> keyNovel = new ArrayList<Option>();
 	private ArrayList<String> quotes = new ArrayList<String>();
+	private short chatIndex = 0;
+	private boolean visualNovelTalking = false;
 	
 	public EntityMikaASM(Object ms, Object w, String naem){
 		super((MinecraftServer)ms, (World)w, naem, new PlayerInteractManager((World)w));
@@ -26,7 +30,7 @@ public class EntityMikaASM extends EntityPlayer implements IMika {
 	
 	@Override
 	public String getName(){
-		return name;
+		return name;	
 	}
 	
 	@Override
@@ -42,18 +46,37 @@ public class EntityMikaASM extends EntityPlayer implements IMika {
 	@Override
 	public void lookAt(Location loc){
 		Vector v = loc.toVector().subtract(this.getBukkitEntity().getEyeLocation().toVector());
-		this.yaw = this.aP = getYaw(v);
+		this.yaw = getYaw(v);
+		try {
+			getClass().getField(NPCs.field).set(this, this.yaw);
+		} catch (IllegalArgumentException | IllegalAccessException
+				| NoSuchFieldException | SecurityException e){
+			e.printStackTrace();
+		}
 		this.pitch = (float)(loc.getY()-65);
 	}
 
 	@Override
-	public void chat(Player plyr, String s){
-		plyr.sendMessage("<" + ChatColor.RED + this.name + ChatColor.WHITE + "> " + s);
+	public void chat(Player plyr){
+		if(quotes.size() > 0){
+			plyr.sendMessage("<" + ChatColor.RED + this.name + ChatColor.WHITE + "> " + quotes.get(chatIndex));
+			chatIndex++;
+			if(chatIndex >= quotes.size()){
+				chatIndex = 0;
+			}
+		} else {
+			plyr.sendMessage("<" + ChatColor.RED + this.name + ChatColor.WHITE + "> Hi, " + plyr.getName() + "!");
+		}
 	}
 	
 	@Override
 	public ArrayList<String> getQuotes(){
 		return quotes;
+	}
+	
+	@Override
+	public ArrayList<Option> getOptions(){
+		return keyNovel;
 	}
 	
 	@Override
@@ -88,7 +111,27 @@ public class EntityMikaASM extends EntityPlayer implements IMika {
 	
 	@Override
 	public void teleportTo(Location l){
-		super.getBukkitEntity().teleport(l);
+		getBukkitEntity().teleport(l);
+	}
+
+	@Override
+	public LivingEntity getCraftEntity(){
+		return getBukkitEntity();
+	}
+
+	@Override
+	public boolean isTalking(){
+		return this.visualNovelTalking;
+	}
+
+	@Override
+	public void setTalking(boolean a){
+		this.visualNovelTalking = a;
+	}
+
+	@Override
+	public void chat(Player plyr, String message){
+		plyr.sendMessage("<" + ChatColor.RED + this.name + ChatColor.WHITE + "> " + message);
 	}
 
 }

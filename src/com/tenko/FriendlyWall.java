@@ -70,6 +70,22 @@ import com.tenko.functions.listen.VineStunner;
  * 7/20?/13:
  * 	NPC's. Started watching HOTD; awesome OP.
  * 
+ * 7/31/13:
+ * 	I like the regular guns, the 360 noscopes, the FaZe, the silent shots...
+ * 	
+ * 	Yeah, I really have nothing to do here. Anyways... Been listening to Akiakane
+ * 	again. Can't seem to see why I've looped around Rolling Girl about 70ish times.
+ * 	wowaka is such an awesome person. Then, I discovered Tightson. Holy crap, this
+ * 	guy. He's a rapper; you probably thought "oh jeeze, rap. sex, drugs, killings,
+ * 	drivebys." Wrong. Definitly wrong. Look at the lyrics of his cover; it's quite
+ * 	depressing, much like Rolling Girl's original lyrics.
+ * 
+ * 	Now back on the topic of programming, NPC's can talk now. Since the community
+ *  wanted it, I decided to give it a visual-novel enviroment with options and all.
+ *  There's no cutscenes though, and there's barely anything that it can do when you
+ *  select an option besides throw back a statement at you. Damn, this plugin is only
+ *  2 months old, and look how much it's expanded.
+ * 
  * 9/9/99:
  * 	I accidentally wipe my entire GitHub repository and run 9 magnets
  * 	through my hard drive, losing all source code. I also accidentally
@@ -104,6 +120,7 @@ public class FriendlyWall extends JavaPlugin {
 		//These don't have any commands, so why bother.
 		functionHandler.loadFunction(Chairs.class, true);
 		functionHandler.loadFunction(NazrinBlocks.class, true);
+		functionHandler.loadFunction(Moosic.class, true);
 		
 		//Listeners register their command within their own superclass.
 		functionHandler.loadFunction(IPBan.class, true);
@@ -115,12 +132,16 @@ public class FriendlyWall extends JavaPlugin {
 		functionHandler.loadFunction(GCForce.class, false, "gcforce", "hcdebugmatch", "dumpallthreads", "dumptenkothreads", "atmptstoptenkothread");
 		//This is the only exception to the whole "Listeners" thing because this has different commands.
 		functionHandler.loadFunction(MinecartLogger.class, true, "minecartlogwipe");
-		functionHandler.loadFunction(Moosic.class, true, "minecartlogwipe");
-		functionHandler.loadFunction(NPCs.class, true, "newnpc", "removeallnpcs", "removenpc", "telenpc", "diemonster");
+		functionHandler.loadFunction(NPCs.class, true, "newnpc", "removeallnpcs", "removenpc", "telenpc", "diemonster", "addquote", "remquote", "listquotes", "vnstyle");
+		
+		if(!this.getDataFolder().exists()){
+			this.getDataFolder().mkdir();
+		}
 	}
 	
 	@Override
 	public void onDisable(){
+		NPCs.killAllNPCs();
 		CommanderCirno.stopFunction();
 		//Remove all commands.
 		functionHandler.removeAll();

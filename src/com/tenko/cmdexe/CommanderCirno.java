@@ -53,9 +53,12 @@ public class CommanderCirno implements CommandExecutor{
 					e.printStackTrace();
 				}
 			} else if(c.getName().equalsIgnoreCase("fwinfo")){
-				cs.sendMessage(ChatColor.GOLD + "Project FriendlyWall [Version 2.0.1a]");
+				cs.sendMessage(ChatColor.GOLD + "Project FriendlyWall [Version 2.1.0\u03D0]");
 				cs.sendMessage(ChatColor.BLUE + "Coding by Tenko/Tsunko");
-				cs.sendMessage(ChatColor.BLUE + "Idea by Remi_Scarlet");
+				cs.sendMessage(ChatColor.BLUE + "Help from Sekibanki");
+				cs.sendMessage(ChatColor.BLUE + "Initial Ideas by Remi_Scarlet");
+				cs.sendMessage(ChatColor.BLUE + "NPCs idea by Shimitty");
+				cs.sendMessage(ChatColor.BLUE + "Chairs idea by community.");
 				cs.sendMessage(ChatColor.BLUE + "This plugin is private and to be used only for YukkuriCraft. Any other server, you probably compiled this yourself. Congratulations, you are winrar.");
 			} else if(c.getName().equalsIgnoreCase("fwlistplugindir")){
 				if(args.length > 0 && ArrayUtils.contains(args, "-d")){

@@ -26,7 +26,7 @@ public class CommandRegister {
 			final Field kwnCmd = map.getClass().getDeclaredField("knownCommands");
 			kwnCmd.setAccessible(true);
 			knownCommands = (HashMap<String, Command>)kwnCmd.get(map);
-
+			
 			kwnCmd.setAccessible(false);
 			cmdMap.setAccessible(false);
 		} catch (Exception e){
@@ -38,7 +38,6 @@ public class CommandRegister {
 		if(cmd != null && !cmd.isEmpty() && exe != null){
 			TenkoCmd theCmd = new TenkoCmd(cmd);
 			map.register("", theCmd);
-			knownCommands.put(cmd, theCmd);
 			theCmd.setExecutor(exe);
 			return theCmd;
 		}
@@ -48,6 +47,10 @@ public class CommandRegister {
 	}
 	
 	public void unregisterCommand(TenkoCmd cmd){
+		if(knownCommands.get(cmd.getName()) == null){
+			System.out.println("Remiremiremiremiremiremiremiremiremiremiremiremiremiremiremiremiremiremiremiremiremiremiremiremiremi! " + cmd.getName() + " returned null! Tell Tenko NOW.");
+			return;
+		}
 		if(knownCommands.get(cmd.getName()).toString().startsWith("com.tenko.objs.TenkoCmd")){
 			knownCommands.remove(cmd.getName());
 		}

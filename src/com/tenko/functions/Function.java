@@ -33,7 +33,9 @@ public abstract class Function implements Listener, CommandExecutor {
 	public static File getFunctionDirectory(String s){
 		File folder = new File(FriendlyWall.getPlugin().getDataFolder(), s);
 		if(!folder.exists()){
-			folder.mkdir();
+			if(!folder.mkdir()){
+				System.out.println("wtf");
+			}
 		}
 		return folder;
 	}
@@ -42,9 +44,11 @@ public abstract class Function implements Listener, CommandExecutor {
 	public abstract boolean onCommand(CommandSender cs, Command c, String l, String[] args);
 
 	public void stopFunction(){
-		if(cmds.size() > 0){
-			for(TenkoCmd cmd : cmds){
-				FriendlyWall.getRegister().unregisterCommand(cmd);
+		if(cmds != null){
+			if(cmds.size() > 0){
+				for(TenkoCmd cmd : cmds){
+					FriendlyWall.getRegister().unregisterCommand(cmd);
+				}
 			}
 		}
 	}

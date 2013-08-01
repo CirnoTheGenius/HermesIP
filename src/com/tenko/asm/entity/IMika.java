@@ -3,8 +3,11 @@ package com.tenko.asm.entity;
 import java.util.ArrayList;
 
 import org.bukkit.Location;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
+
+import com.tenko.visualnovel.Option;
 
 public abstract interface IMika {
 	
@@ -12,7 +15,9 @@ public abstract interface IMika {
 
 	public void lookAt(Location loc);
 
-	public void chat(Player plyr, String s);
+	public void chat(Player plyr);
+	
+	public void chat(Player plyr, String message);
 	
 	public ArrayList<String> getQuotes();
 	
@@ -27,5 +32,13 @@ public abstract interface IMika {
 	public void die();
 	
 	public void teleportTo(Location l);
+	
+	public LivingEntity getCraftEntity();
+	
+	public ArrayList<Option> getOptions();
+	
+	public boolean isTalking();
+	
+	public void setTalking(boolean a);
 	
 }

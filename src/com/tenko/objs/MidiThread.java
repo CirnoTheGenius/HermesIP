@@ -22,7 +22,6 @@ public class MidiThread extends Thread {
 		this.url = theUrl;
 	}
 
-	@SuppressWarnings("resource")
 	@Override
 	public void run(){
 		try {

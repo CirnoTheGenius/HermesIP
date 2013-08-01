@@ -18,7 +18,7 @@ public class ASMClassLoader extends URLClassLoader  {
 	protected Class<?> findClass(final String name) throws ClassNotFoundException {
 		byte[] classBytes = this.classes.remove(name);
 		if (classBytes != null) {
-			return defineClass(name, classBytes, 0, classBytes.length); 
+			return defineClass(name, classBytes, 0, classBytes.length);
 		}
 		return super.findClass(name);
 	}
