@@ -2,7 +2,7 @@ package com.tenko.visualnovel;
 
 import org.bukkit.entity.Player;
 
-import com.tenko.asm.entity.IMika;
+import com.tenko.asm.IMika;
 
 public abstract class OptionRunnable implements Runnable {
 	
@@ -19,6 +19,7 @@ public abstract class OptionRunnable implements Runnable {
 		this.target = tar;
 		this.entity = en;
 		this.description = desc;
+		this.intent = i;
 	}
 	
 	public Player getPlayer(){

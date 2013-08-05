@@ -2,8 +2,8 @@ package com.tenko.functions;
 
 import com.google.common.io.Files;
 import com.tenko.FriendlyWall;
-import com.tenko.asm.builders.EntityMikaClassBuilder;
-import com.tenko.asm.entity.IMika;
+import com.tenko.asm.EntityMikaClassBuilder;
+import com.tenko.asm.IMika;
 import com.tenko.nms.NMSLib;
 import com.tenko.objs.TenkoCmd;
 import com.tenko.visualnovel.Conversation;
@@ -31,11 +31,11 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.metadata.FixedMetadataValue;
 
 public class NPCs extends Function {
@@ -47,7 +47,7 @@ public class NPCs extends Function {
 
 	//1.5.2: aA
 	//1.6.2: aP
-	public static String field = "aP";
+	public static String field = "aA";
 
 
 	public NPCs(){
@@ -64,6 +64,8 @@ public class NPCs extends Function {
 				}
 			}
 		}
+
+		listen();
 	}
 
 	//Ugliest class I've written so far.
@@ -145,15 +147,15 @@ public class NPCs extends Function {
 								i++;
 								continue;
 							}
-						}
-						Iterator<Entry<String, IMika>> it = NPCList.entrySet().iterator();
-						while(it.hasNext()){
-							Entry<String, IMika> entry = it.next();
-							if(entry.getValue().getCraftEntity().getUniqueId() == e.getUniqueId()){
-								entry.getValue().die();
-								remove(entry.getValue().getName());
-								it.remove();
-								i++;
+							Iterator<Entry<String, IMika>> it = NPCList.entrySet().iterator();
+							while(it.hasNext()){
+								Entry<String, IMika> entry = it.next();
+								if(entry.getValue().getCraftEntity().getUniqueId() == e.getUniqueId()){
+									entry.getValue().die();
+									remove(entry.getValue().getName());
+									it.remove();
+									i++;
+								}
 							}
 						}
 					}
@@ -280,30 +282,72 @@ public class NPCs extends Function {
 		return false;
 	}
 
+	public void listen(){
+		Bukkit.getScheduler().scheduleSyncRepeatingTask(FriendlyWall.getPlugin(), new Runnable(){
+			@Override
+			public void run(){
+				try {
+					if(NPCList.size() == 0){
+						return;
+					}
+
+					for(Entry<String, IMika> npc : NPCList.entrySet()){
+						final IMika mika = npc.getValue();
+						List<Entity> entities = mika.getCraftEntity().getNearbyEntities(7,7,7);
+
+						for(final Entity e : entities){
+							if(e instanceof Player){
+								mika.lookAt(((LivingEntity)e).getEyeLocation());
+								if(!e.hasMetadata("hasTalkedTo" + mika.getName())){
+									e.setMetadata("hasTalkedTo" + mika.getName(), new FixedMetadataValue(FriendlyWall.getPlugin(), true));
+									Bukkit.getScheduler().scheduleSyncDelayedTask(FriendlyWall.getPlugin(), new Runnable(){
+
+										@Override
+										public void run(){
+											e.removeMetadata("hasTalkedTo"+mika.getName(), FriendlyWall.getPlugin());
+										}
+
+									}, 20*10*60);
+									mika.chat((Player)e);
+								}
+
+								return;
+							}
+						}
+					}
+				} catch (Exception e){
+					FriendlyWall.exceptionCount++;
+				}
+			}
+		}, 5, 10);
+	}
+
 	public static HashMap<String, IMika> getNPCList(){
 		return NPCList;
 	}
 
 	public void parseNPCSpawnFile(File f) throws IOException {
-		BufferedReader br = new BufferedReader(new FileReader(f));
-		String l;
-		while ((l = br.readLine()) != null){
-			try { 
-				String[] stuffs = l.split(";");
-				String name = stuffs[0];
-				String world = stuffs[1];
-				double x = Double.valueOf(stuffs[2]).doubleValue();
-				double y = Double.valueOf(stuffs[3]).doubleValue();
-				double z = Double.valueOf(stuffs[4]).doubleValue();
+		try(BufferedReader br = new BufferedReader(new FileReader(f))){
+			String l;
+			while ((l = br.readLine()) != null){
+				try { 
+					String[] stuffs = l.split(";");
+					String name = stuffs[0];
+					String world = stuffs[1];
+					double x = Double.valueOf(stuffs[2]).doubleValue();
+					double y = Double.valueOf(stuffs[3]).doubleValue();
+					double z = Double.valueOf(stuffs[4]).doubleValue();
 
-				Location temp = new Location(Bukkit.getWorld(world), x, y, z);
-				IMika i = createNewNpc(name, temp, false);
-				i.getQuotes().addAll(getList(name, "NPCQuoteData"));
-			} catch (ArrayIndexOutOfBoundsException e){
-				System.out.println("Failed to parse file!");
+					Location temp = new Location(Bukkit.getWorld(world), x, y, z);
+					IMika i = createNewNpc(name, temp, false);
+					i.getQuotes().addAll(getList(name, "NPCQuoteData"));
+				} catch (ArrayIndexOutOfBoundsException e){
+					System.out.println("Failed to parse file!");
+					br.close();
+					return;
+				}
 			}
 		}
-		br.close();
 	}
 
 	public void createNewNpc(String name, Location l){
@@ -321,19 +365,18 @@ public class NPCs extends Function {
 
 		return t;
 	}
-	
+
 	public void writeToFile(String name, String world, double x, double y, double z){
 		File dir = new File(getFunctionDirectory("NPCs"), "NPCVNData");
 		if(!dir.exists()){
 			dir.mkdir();
 		}
-		
+
 		try {
 			File f = new File(dir, name + ".dat");
-			BufferedWriter bw = new BufferedWriter(new FileWriter(f));
-			bw.write(name + ";" + world + ";" + x + ";" + y + ";" + z);
-			bw.flush();
-			bw.close();
+			try(BufferedWriter bw = new BufferedWriter(new FileWriter(f))){
+				bw.write(name + ";" + world + ";" + x + ";" + y + ";" + z);
+			}
 		} catch (IOException e){
 			e.printStackTrace();
 		}
@@ -343,14 +386,13 @@ public class NPCs extends Function {
 		try {
 			List<String> lines = Files.readLines(new File(getFunctionDirectory("NPCs"), "npcs.dat"), Charset.defaultCharset());
 			File f = new File(getFunctionDirectory("NPCs"), "npcs.dat");
-			BufferedWriter bw = new BufferedWriter(new FileWriter(f, false));
-			for (String l : lines){
-				if(!l.startsWith(name + ";")){
-					bw.write(l);
+			try(BufferedWriter bw = new BufferedWriter(new FileWriter(f, false))){
+				for (String l : lines){
+					if(!l.startsWith(name + ";")){
+						bw.write(l);
+					}
 				}
 			}
-			bw.flush();
-			bw.close();
 		} catch (IOException e){
 			e.printStackTrace();
 		}
@@ -418,72 +460,51 @@ public class NPCs extends Function {
 
 	@EventHandler
 	public void inb4Clannad(PlayerInteractEntityEvent e){
-		Entity entity = e.getRightClicked();
-		if(entity.getType() == EntityType.PLAYER){
-			if(NPCList.containsKey(((Player)entity).getName())){
-				IMika mika = NPCList.get(((Player)entity).getName());
-				if(mika.getOptions().size() > 0){
-					if(mika.isTalking()){
-						e.getPlayer().sendMessage("That person is already talking to someone.");
-						return;
-					}
+		try {
+			Entity entity = e.getRightClicked();
+			if(entity.getType() == EntityType.PLAYER){
+				if(NPCList.containsKey(((Player)entity).getName())){
+					IMika mika = NPCList.get(((Player)entity).getName());
+					if(mika.getOptions().size() > 0){
+						if(mika.isTalking()){
+							e.getPlayer().sendMessage("That person is already talking to someone.");
+							return;
+						}
 
-					new Conversation(e.getPlayer(), mika);
-					mika.lookAt(e.getPlayer().getEyeLocation());
+						new Conversation(e.getPlayer(), mika);
+						mika.lookAt(e.getPlayer().getEyeLocation());
+					}
 				}
 			}
+		} catch (Exception ex){
+			FriendlyWall.exceptionCount++;
 		}
 	}
 
 	@EventHandler
 	public void talkingLikeVN(AsyncPlayerChatEvent e){
-		if(e.getMessage().length() == 1){
-			if(e.getPlayer().hasMetadata("conversationNpc")){
-				Conversation conv = (Conversation)e.getPlayer().getMetadata("conversationNpc").get(0).value();
+		try {
+			if(e.getMessage().length() == 1){
+				if(e.getPlayer().hasMetadata("conversationNpc")){
+					Conversation conv = (Conversation)e.getPlayer().getMetadata("conversationNpc").get(0).value();
 
-				for(Option o : conv.npc.getOptions()){
-					if(e.getMessage().equals(String.valueOf(o.getOptionNum()))){
-						o.answered();
-						conv.npc.setTalking(false);
-						e.getPlayer().removeMetadata("conversationNpc", FriendlyWall.getPlugin());
-						e.setCancelled(true);
-						return;
+					for(Option o : conv.npc.getOptions()){
+						if(e.getMessage().equals(String.valueOf(o.getOptionNum()))){
+							o.answered();
+							conv.npc.setTalking(false);
+							e.getPlayer().removeMetadata("conversationNpc", FriendlyWall.getPlugin());
+							e.setCancelled(true);
+							return;
+						}
 					}
-				}
 
-				conv.npc.chat(e.getPlayer(), "I didn't quite get that.");
-				e.setCancelled(true);
+					conv.npc.chat(e.getPlayer(), "I didn't quite get that.");
+					e.setCancelled(true);
+				}
 			}
+		} catch (Exception ex){
+			FriendlyWall.exceptionCount++;
 		}
 	}
 
-	@EventHandler
-	public void iSeeDeadPeople(PlayerMoveEvent e){
-		for(Entry<String, IMika> npc : NPCList.entrySet()){
-			Player plyr = e.getPlayer();
-			IMika mika = npc.getValue();
-
-			if(e.getFrom().getX() != e.getTo().getX() || e.getFrom().getY() != e.getTo().getY() || e.getFrom().getZ() != e.getTo().getZ()){
-				//No, sempai won't notice you.
-				if(mika.isTalking()){
-					return;
-				}
-
-				if(plyr.getLocation().distanceSquared(npc.getValue().getCraftBukkitLocation()) < 16){	
-					mika.lookAt(plyr.getEyeLocation());
-
-					if(plyr.hasMetadata("hasTalkedTo" + mika.getName())){
-						continue;
-					}
-
-					plyr.setMetadata("hasTalkedTo" + mika.getName(), new FixedMetadataValue(FriendlyWall.getPlugin(), true));
-					mika.chat(plyr);
-				} else {
-					if(plyr.hasMetadata("hasTalkedTo" + mika.getName())){
-						plyr.removeMetadata("hasTalkedTo" + mika.getName(), FriendlyWall.getPlugin());
-					}
-				}
-			}
-		}
-	}
 }

@@ -1,4 +1,4 @@
-package com.tenko.asm.entity;
+package com.tenko.asm;
 
 import java.util.ArrayList;
 

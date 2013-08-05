@@ -1,6 +1,6 @@
-package com.tenko.asm.network;
+package com.tenko.asm;
 
-import net.minecraft.server.v1_6_R2.*;
+import net.minecraft.server.v1_5_R3.*;
 
 //Do not use. Meant for compiling to ASM.
 public class ServerConnectionASM extends PlayerConnection {

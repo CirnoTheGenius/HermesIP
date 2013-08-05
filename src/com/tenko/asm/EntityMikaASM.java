@@ -1,4 +1,4 @@
-package com.tenko.asm.entity;
+package com.tenko.asm;
 
 import java.util.ArrayList;
 import org.bukkit.ChatColor;
@@ -10,7 +10,7 @@ import org.bukkit.util.Vector;
 import com.tenko.functions.NPCs;
 import com.tenko.visualnovel.Option;
 
-import net.minecraft.server.v1_6_R2.*;
+import net.minecraft.server.v1_5_R3.*;
 
 //Do not use. Meant for compiling to ASM.
 public class EntityMikaASM extends EntityPlayer implements IMika {
@@ -22,7 +22,7 @@ public class EntityMikaASM extends EntityPlayer implements IMika {
 	
 	public EntityMikaASM(Object ms, Object w, String naem){
 		super((MinecraftServer)ms, (World)w, naem, new PlayerInteractManager((World)w));
-		playerConnection = new com.tenko.asm.network.ServerConnectionASM(this);
+		playerConnection = new com.tenko.asm.ServerConnectionASM(this);
 		NPCs.getNPCList().put(naem, this);
 
 		this.playerInteractManager.setGameMode(EnumGamemode.SURVIVAL);

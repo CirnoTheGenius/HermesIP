@@ -1,4 +1,4 @@
-package com.tenko.asm.builders;
+package com.tenko.asm;
 
 import java.net.URL;
 import java.net.URLClassLoader;

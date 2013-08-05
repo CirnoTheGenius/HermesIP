@@ -2,12 +2,30 @@ package com.tenko.functions;
 
 import java.util.Set;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import com.tenko.FriendlyWall;
 
 public class GCForce extends Function {
-
+	
+	public Integer id;
+	
+	public GCForce(){
+		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(FriendlyWall.getPlugin(), new Runnable(){
+			
+			@Override
+			public void run(){
+				if(FriendlyWall.exceptionCount > 20){
+					Bukkit.broadcastMessage(ChatColor.RED + "A plugin crashed!");
+					Bukkit.getScheduler().cancelTask(id);
+				}
+			}
+			
+		}, 20, 120);
+	}
+	
 	@SuppressWarnings("deprecation")
 	@Override
 	public boolean onCommand(CommandSender cs, Command c, String l, String[] args){

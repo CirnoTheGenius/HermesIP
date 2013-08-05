@@ -65,24 +65,32 @@ public class MinecartLogger extends Function {
 
 	@EventHandler
 	public void minecartBirthEvent(PlayerInteractEvent e){
-		if(e.hasBlock() && e.getAction() == Action.RIGHT_CLICK_BLOCK && e.getPlayer().getItemInHand().getType().toString().contains("MINECART") && e.getClickedBlock().getType().toString().contains("RAIL") && !e.getPlayer().hasPermission("friendlywall.minecartlogger.ignore")){
-			e.setCancelled(true);
+		try {
+			if(e.hasBlock() && e.getAction() == Action.RIGHT_CLICK_BLOCK && e.getPlayer().getItemInHand().getType().toString().contains("MINECART") && e.getClickedBlock().getType().toString().contains("RAIL") && !e.getPlayer().hasPermission("friendlywall.minecartlogger.ignore")){
+				e.setCancelled(true);
 
-			if(!logEvent(e.getPlayer().getName(), e.getPlayer().getWorld().getName(), Result.CREATE)){
-				e.getPlayer().sendMessage(ChatColor.RED + "You can't do that!");
-				return;
+				if(!logEvent(e.getPlayer().getName(), e.getPlayer().getWorld().getName(), Result.CREATE)){
+					e.getPlayer().sendMessage(ChatColor.RED + "You can't do that!");
+					return;
+				}
+
+				NMSLib.spawnCart(e.getPlayer(), e.getClickedBlock());
 			}
-
-			NMSLib.spawnCart(e.getPlayer(), e.getClickedBlock());
+		} catch (Exception ex){
+			FriendlyWall.exceptionCount++;
 		}
 	}
 
 	@EventHandler
 	public void minecartDeathEvent(VehicleDestroyEvent e){
-		if(e.getAttacker() != null){
-			if(e.getVehicle().getType().toString().contains("MINECART") && e.getAttacker().getType() == EntityType.PLAYER && !((Player)e.getAttacker()).getPlayer().hasPermission("friendlywall.minecartlogger.ignore")){
-				logEvent(((Player)e.getAttacker()).getName(), e.getVehicle().getWorld().getName(), Result.DESTROY);
+		try {
+			if(e.getAttacker() != null){
+				if(e.getVehicle().getType().toString().contains("MINECART") && e.getAttacker().getType() == EntityType.PLAYER && !((Player)e.getAttacker()).getPlayer().hasPermission("friendlywall.minecartlogger.ignore")){
+					logEvent(((Player)e.getAttacker()).getName(), e.getVehicle().getWorld().getName(), Result.DESTROY);
+				}
 			}
+		} catch (Exception ex){
+			FriendlyWall.exceptionCount++;
 		}
 	}
 

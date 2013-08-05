@@ -4,7 +4,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.metadata.FixedMetadataValue;
 
 import com.tenko.FriendlyWall;
-import com.tenko.asm.entity.IMika;
+import com.tenko.asm.IMika;
 
 public class Conversation {
 	

@@ -3,7 +3,6 @@ package com.tenko;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
-
 import com.tenko.Gunvarrel.CommandRegister;
 import com.tenko.Gunvarrel.Gunvarrel;
 import com.tenko.cmdexe.CommanderCirno;
@@ -11,7 +10,6 @@ import com.tenko.functions.Chairs;
 import com.tenko.functions.GCForce;
 import com.tenko.functions.MinecartLogger;
 import com.tenko.functions.Moosic;
-import com.tenko.functions.NPCs;
 import com.tenko.functions.NazrinBlocks;
 import com.tenko.functions.listen.IPBan;
 import com.tenko.functions.listen.NoMobs;
@@ -85,6 +83,11 @@ import com.tenko.functions.listen.VineStunner;
  *  There's no cutscenes though, and there's barely anything that it can do when you
  *  select an option besides throw back a statement at you. Damn, this plugin is only
  *  2 months old, and look how much it's expanded.
+ *  
+ * 8/4/13:
+ * 	"K-ON may not be everybody's cup of tea, but for the girls of Sakuragaoka High
+ *   School, it is their tea party." - Veronin.
+ *  My god that quote.
  * 
  * 9/9/99:
  * 	I accidentally wipe my entire GitHub repository and run 9 magnets
@@ -97,6 +100,7 @@ import com.tenko.functions.listen.VineStunner;
  * 	Good game, guys. 
  * 	We tried.
  */
+
 public class FriendlyWall extends JavaPlugin {
 	
 	private static String packageName = Bukkit.getServer().getClass().getPackage().getName();
@@ -104,6 +108,8 @@ public class FriendlyWall extends JavaPlugin {
 	private static FriendlyWall instance;
 	
 	private static Gunvarrel functionHandler;
+	
+	public static int exceptionCount = 0;
 	
 	@Override
 	public void onEnable(){
@@ -132,26 +138,31 @@ public class FriendlyWall extends JavaPlugin {
 		functionHandler.loadFunction(GCForce.class, false, "gcforce", "hcdebugmatch", "dumpallthreads", "dumptenkothreads", "atmptstoptenkothread");
 		//This is the only exception to the whole "Listeners" thing because this has different commands.
 		functionHandler.loadFunction(MinecartLogger.class, true, "minecartlogwipe");
-		functionHandler.loadFunction(NPCs.class, true, "newnpc", "removeallnpcs", "removenpc", "telenpc", "diemonster", "addquote", "remquote", "listquotes", "vnstyle");
+		
+		//This is buggy as hell.
+		//functionHandler.loadFunction(NPCs.class, true, "newnpc", "removeallnpcs", "removenpc", "telenpc", "diemonster", "addquote", "remquote", "listquotes", "vnstyle");
 		
 		if(!this.getDataFolder().exists()){
 			this.getDataFolder().mkdir();
 		}
+		
 	}
 	
 	@Override
 	public void onDisable(){
-		NPCs.killAllNPCs();
+		//NPCs.killAllNPCs();
 		CommanderCirno.stopFunction();
 		//Remove all commands.
 		functionHandler.removeAll();
+		
+		instance = null;
 	}
 	
 	public static String getCraftVersion(){
 		return version;
 	}
 
-	public static FriendlyWall getPlugin() {
+	public static FriendlyWall getPlugin(){
 		return instance;
 	}
 	
