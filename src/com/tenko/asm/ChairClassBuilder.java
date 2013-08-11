@@ -1,6 +1,5 @@
 package com.tenko.asm;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -111,22 +110,18 @@ public class ChairClassBuilder implements Opcodes {
 	public Object newWatcherInstance(byte b){
 		try {
 			return clazz.getConstructor(byte.class).newInstance(b);
-		} catch (InstantiationException | IllegalAccessException
-				| IllegalArgumentException | InvocationTargetException
-				| NoSuchMethodException | SecurityException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
 		return null;
 	}
-	
+
 	public List<?> getListFromWatcher(Object watcher){
 		try {
 			Method m = watcher.getClass().getMethod("b");
 			return (List<?>)m.invoke(watcher);
-		} catch (IllegalAccessException
-				| IllegalArgumentException | InvocationTargetException
-				| NoSuchMethodException | SecurityException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 

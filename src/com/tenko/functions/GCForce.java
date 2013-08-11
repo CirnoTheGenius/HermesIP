@@ -1,31 +1,42 @@
 package com.tenko.functions;
 
+import java.lang.reflect.Field;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.PluginCommand;
+import org.bukkit.command.SimpleCommandMap;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.SimplePluginManager;
+
 import com.tenko.FriendlyWall;
 
 public class GCForce extends Function {
-	
+
 	public Integer id;
-	
+
 	public GCForce(){
 		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(FriendlyWall.getPlugin(), new Runnable(){
-			
+
 			@Override
 			public void run(){
 				if(FriendlyWall.exceptionCount > 20){
 					Bukkit.broadcastMessage(ChatColor.RED + "A plugin crashed!");
 					Bukkit.getScheduler().cancelTask(id);
+					unloadPlugin("FriendlyWall", FriendlyWall.getPlugin());
 				}
 			}
-			
+
 		}, 20, 120);
 	}
-	
+
 	@SuppressWarnings("deprecation")
 	@Override
 	public boolean onCommand(CommandSender cs, Command c, String l, String[] args){
@@ -87,6 +98,76 @@ public class GCForce extends Function {
 			}
 		}
 		return false;
+	}
+
+	public boolean unloadPlugin(String plugin, Plugin pl){
+		try {
+			SimplePluginManager man = (SimplePluginManager)Bukkit.getServer().getPluginManager();
+
+			if(man == null){
+				Bukkit.broadcastMessage(ChatColor.RED + "Plugin " + ChatColor.BOLD + "majorly" + ChatColor.RESET + ChatColor.RED + " crashed. Technical Info: \"man was null\".");
+				return false;
+			}
+
+			Field pluginListF = SimplePluginManager.class.getDeclaredField("plugins");
+			pluginListF.setAccessible(true);
+
+			Field lookupNamesF = SimplePluginManager.class.getDeclaredField("lookupNames");
+			lookupNamesF.setAccessible(true);
+
+			Field commandMapF = SimplePluginManager.class.getDeclaredField("commandMap");
+			commandMapF.setAccessible(true);
+
+			List<Plugin> pluginList = (List<Plugin>)pluginListF.get(man);
+			Map<String, Plugin> lookupNames = (Map<String, Plugin>)lookupNamesF.get(man);
+			SimpleCommandMap cmdMap = (SimpleCommandMap)commandMapF.get(man);
+
+			if(cmdMap == null){
+				Bukkit.broadcastMessage(ChatColor.RED + "Plugin " + ChatColor.BOLD + "majorly" + ChatColor.RESET + ChatColor.RED + " crashed. Technical info: cmdMap was null somehow!");
+				return false;
+			}
+
+			Field knownCommandsF = cmdMap.getClass().getDeclaredField("knownCommands");
+			knownCommandsF.setAccessible(true);
+			Map<String, Command> knownCommands = (Map<String, Command>)knownCommandsF.get(cmdMap);
+
+			for(Plugin p : man.getPlugins()){
+				if(p.getDescription().getName().equalsIgnoreCase(plugin)){
+					man.disablePlugin(p);
+
+					if(pluginList != null && pluginList.contains(pl)){
+						System.out.println("Found pluginList. This is good.");
+						pluginList.remove(pl);
+					} else {
+						System.out.println("Maybe a new plugin?");
+					}
+
+					if(lookupNames != null && lookupNames.containsKey(plugin)){
+						System.out.println("Found lookupNames. This is good.");
+						lookupNames.remove(plugin);
+					}
+
+					Iterator<Entry<String, Command>> it = knownCommands.entrySet().iterator();
+					while(it.hasNext()){
+						Entry<String, Command> e = it.next();
+						if(e.getValue() instanceof PluginCommand){
+							PluginCommand cmd = (PluginCommand)e.getValue();
+
+							if(cmd.getPlugin() == p){
+								cmd.unregister(cmdMap);
+								it.remove();
+							}
+						}
+					}
+				}
+			}
+		} catch (Exception e){
+			Bukkit.broadcastMessage(ChatColor.RED + "Plugin " + ChatColor.BOLD + "majorly" + ChatColor.RESET + ChatColor.RED + " crashed. Technical info: " + e);
+			return false;
+		}
+
+		Bukkit.broadcastMessage(ChatColor.BLUE + "Successfully unloaded plugin! Update is beginning soon!");
+		return true;
 	}
 
 }

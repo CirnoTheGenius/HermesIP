@@ -54,6 +54,15 @@ public class Gunvarrel {
 	public CommandRegister getRegister(){
 		return cr;
 	}
+
+	public Function getFunction(Class<? extends Function> c){
+		for(Function f : functions){
+			if(f.getClass() == c){
+				return f;
+			}
+		}
+		return null;
+	}
 	
 	public void removeAll(){
 		for(Function f : functions){

@@ -1,4 +1,4 @@
-package com.tenko.visualnovel;
+package com.tenko.NovEngine;
 
 import org.bukkit.entity.Player;
 

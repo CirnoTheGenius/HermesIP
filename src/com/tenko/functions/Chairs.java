@@ -52,12 +52,6 @@ public class Chairs extends Function {
 	@EventHandler
 	public void walkAway(PlayerMoveEvent e){
 		if(sitters.containsKey(e.getPlayer().getName())){
-			if(e.getFrom().getY() < e.getTo().getY()){
-				e.getPlayer().sendMessage(ChatColor.YELLOW + "You have stopped sitting.");
-				sitters.remove(e.getPlayer().getName());
-				stopSittingOnMe(e.getPlayer());
-				return;
-			}
 			Location to = sitters.get(e.getPlayer().getName());
 			Location from = e.getPlayer().getLocation();
 
@@ -66,13 +60,21 @@ public class Chairs extends Function {
 					e.getPlayer().sendMessage(ChatColor.YELLOW + "You have stopped sitting.");
 					sitters.remove(e.getPlayer().getName());
 					stopSittingOnMe(e.getPlayer());
+					return;
+				} else if(e.getFrom().getY() < e.getTo().getY()){
+					e.getPlayer().sendMessage(ChatColor.YELLOW + "You have stopped sitting.");
+					sitters.remove(e.getPlayer().getName());
+					stopSittingOnMe(e.getPlayer());
+					return;
 				} else {
 					sendSitPacket(e.getPlayer());
+					return;
 				}
-			} else {	
+			} else {
 				e.getPlayer().sendMessage(ChatColor.YELLOW + "You have stopped sitting.");
 				sitters.remove(e.getPlayer().getName());
 				stopSittingOnMe(e.getPlayer());
+				return;
 			}
 		}
 	}
@@ -110,7 +112,7 @@ public class Chairs extends Function {
 	@SuppressWarnings("incomplete-switch")
 	@EventHandler
 	public void sitDown(PlayerInteractEvent e){
-		if(e.hasBlock() && !sitters.containsKey(e.getPlayer().getName()) && e.getPlayer().isSneaking() && e.getPlayer().getLocation().distance(e.getClickedBlock().getLocation()) < 2D){
+		if(e.hasBlock() && !sitters.containsKey(e.getPlayer().getName()) && e.getPlayer().isSneaking() && e.getPlayer().getLocation().getWorld() == e.getClickedBlock().getWorld() && e.getPlayer().getLocation().distance(e.getClickedBlock().getLocation()) < 2D){
 			if(e.getClickedBlock().getRelative(BlockFace.DOWN).isLiquid()){
 				return;
 			}
@@ -130,7 +132,7 @@ public class Chairs extends Function {
 			if(e.getClickedBlock().getType().toString().contains("STAIR")){
 				Stairs s = (Stairs)e.getClickedBlock().getState().getData();
 
-				if (s.isInverted()) {
+				if(s.isInverted()){
 					return;
 				}
 
@@ -153,7 +155,7 @@ public class Chairs extends Function {
 					}
 
 					e.getPlayer().teleport(nLocation);
-					e.getPlayer().setSneaking(true);
+					e.getPlayer().setSneaking(false);
 					sendSitPacket(e.getPlayer());
 					sitters.put(e.getPlayer().getName(), e.getClickedBlock().getLocation());
 					e.setUseInteractedBlock(Result.DENY);
@@ -183,7 +185,7 @@ public class Chairs extends Function {
 				Location nLocation = e.getClickedBlock().getLocation().clone();
 				nLocation.add(0.5D, 0.2D, 0.5D);
 				e.getPlayer().teleport(nLocation);
-				e.getPlayer().setSneaking(true);
+				e.getPlayer().setSneaking(false);
 				sendSitPacket(e.getPlayer());
 				sitters.put(e.getPlayer().getName(), e.getClickedBlock().getLocation());
 				e.setUseInteractedBlock(Result.DENY);
@@ -200,7 +202,7 @@ public class Chairs extends Function {
 					nLocation.add(0.5D, 0.3D, 0.5D);
 
 					e.getPlayer().teleport(nLocation);
-					e.getPlayer().setSneaking(true);
+					e.getPlayer().setSneaking(false);
 					sendSitPacket(e.getPlayer());
 					sitters.put(e.getPlayer().getName(), e.getClickedBlock().getLocation());
 					e.setUseInteractedBlock(Result.DENY);
@@ -211,7 +213,7 @@ public class Chairs extends Function {
 							sendSit();
 						}
 					}, 10);
-
+					
 					e.setCancelled(true);
 				} catch (Exception e1) {
 					e1.printStackTrace();
@@ -226,7 +228,7 @@ public class Chairs extends Function {
 		packet.setField("a", p.getEntityId());
 		packet.setDeclaredField("b", ccb.getListFromWatcher(ccb.newWatcherInstance(b)));
 
-		NMSLib.sendPacket(p, packet.seal());
+		NMSLib.sendPackets(packet.seal());
 	}
 
 	private void sendSitPacket(Player p){
@@ -238,7 +240,7 @@ public class Chairs extends Function {
 	}
 
 	private void sendSit(){
-		for (String s : sitters.keySet()) {
+		for(String s : sitters.keySet()){
 			Player p = Bukkit.getPlayer(s);
 			if (p != null){
 				sendSitPacket(p);

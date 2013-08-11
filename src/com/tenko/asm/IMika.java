@@ -7,7 +7,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-import com.tenko.visualnovel.Option;
+import com.tenko.NovEngine.optiontypes.Option;
 
 public abstract interface IMika {
 	

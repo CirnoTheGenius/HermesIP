@@ -1,6 +1,7 @@
 package com.tenko.cmdexe;
 
 import com.tenko.FriendlyWall;
+import com.tenko.functions.NPCsV2;
 import com.tenko.objs.TenkoCmd;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -22,6 +23,8 @@ public class CommanderCirno implements CommandExecutor{
 				FriendlyWall.getRegister().registerCommand("fwreload", this), 
 				FriendlyWall.getRegister().registerCommand("fwinfo", this), 
 				FriendlyWall.getRegister().registerCommand("fwlistplugindir", this),
+				FriendlyWall.getRegister().registerCommand("tenkostoplistening", this),
+				FriendlyWall.getRegister().registerCommand("tenkostartlistening", this),
 		};
 	}
 
@@ -53,7 +56,7 @@ public class CommanderCirno implements CommandExecutor{
 					e.printStackTrace();
 				}
 			} else if(c.getName().equalsIgnoreCase("fwinfo")){
-				cs.sendMessage(ChatColor.GOLD + "Project FriendlyWall [Version 2.1.0\u03D0]");
+				cs.sendMessage(ChatColor.GOLD + "Project FriendlyWall [Version 2.2.3\u03D0]");
 				cs.sendMessage(ChatColor.BLUE + "Coding by Tenko/Tsunko");
 				cs.sendMessage(ChatColor.BLUE + "Help from Sekibanki");
 				cs.sendMessage(ChatColor.BLUE + "Initial Ideas by Remi_Scarlet");
@@ -74,6 +77,12 @@ public class CommanderCirno implements CommandExecutor{
 						}
 					}
 				}
+			} else if(c.getName().equalsIgnoreCase("tenkostoplistening")){
+				NPCsV2.shouldListen = false;
+				cs.sendMessage(ChatColor.BLUE + "[Debug] Stopped Listening.");
+			} else if(c.getName().equalsIgnoreCase("tenkostartlistening")){
+				NPCsV2.shouldListen = true;
+				cs.sendMessage(ChatColor.BLUE + "[Debug] Listening..");
 			}
 		} else {
 			cs.sendMessage("Unknown command. Type \"help\" for help.");

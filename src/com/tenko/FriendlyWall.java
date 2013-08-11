@@ -10,6 +10,7 @@ import com.tenko.functions.Chairs;
 import com.tenko.functions.GCForce;
 import com.tenko.functions.MinecartLogger;
 import com.tenko.functions.Moosic;
+import com.tenko.functions.NPCsV2;
 import com.tenko.functions.NazrinBlocks;
 import com.tenko.functions.listen.IPBan;
 import com.tenko.functions.listen.NoMobs;
@@ -112,10 +113,10 @@ public class FriendlyWall extends JavaPlugin {
 	public static int exceptionCount = 0;
 	
 	@Override
-	public void onEnable(){
+	public void onEnable(){	
 		Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "O" + ChatColor.GOLD + "p" + ChatColor.YELLOW + "e" + ChatColor.GREEN + "r" + ChatColor.BLUE + "a" + ChatColor.LIGHT_PURPLE + "t" + ChatColor.RED + "i" + ChatColor.GOLD + "o" + ChatColor.YELLOW + "n" + " " + ChatColor.GREEN + "F" + ChatColor.BLUE + "r" + ChatColor.LIGHT_PURPLE + "i" + ChatColor.RED + "e" + ChatColor.GOLD + "n" + ChatColor.YELLOW + "d" + ChatColor.GREEN + "l" + ChatColor.BLUE + "y" + ChatColor.LIGHT_PURPLE + "W" + ChatColor.RED + "a" + ChatColor.GOLD + "l" + ChatColor.YELLOW + "l" + ChatColor.GREEN + ":" + " " + ChatColor.BLUE + "C" + ChatColor.LIGHT_PURPLE + "o" + ChatColor.RED + "m" + ChatColor.GOLD + "m" + ChatColor.YELLOW + "e" + ChatColor.GREEN + "n" + ChatColor.BLUE + "c" + ChatColor.LIGHT_PURPLE + "e" + ChatColor.RED + "!");
 		Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "R" + ChatColor.GOLD + "a" + ChatColor.YELLOW + "i" + ChatColor.GREEN + "n" + ChatColor.BLUE + "b" + ChatColor.LIGHT_PURPLE + "o" + ChatColor.RED + "w" + ChatColor.GOLD + "s" + " " + ChatColor.YELLOW + "m" + ChatColor.GREEN + "e" + ChatColor.BLUE + "a" + ChatColor.LIGHT_PURPLE + "n" + ChatColor.RED + "s" + " " + ChatColor.GOLD + "f" + ChatColor.YELLOW + "r" + ChatColor.GREEN + "i" + ChatColor.BLUE + "e" + ChatColor.LIGHT_PURPLE + "n" + ChatColor.RED + "d" + ChatColor.GOLD + "s" + ChatColor.YELLOW + "h" + ChatColor.GREEN + "i" + ChatColor.BLUE + "p" + " " + ChatColor.LIGHT_PURPLE + "w" + ChatColor.RED + "h" + ChatColor.GOLD + "i" + ChatColor.YELLOW + "c" + ChatColor.GREEN + "h" + " " + ChatColor.BLUE + "m" + ChatColor.LIGHT_PURPLE + "e" + ChatColor.RED + "a" + ChatColor.GOLD + "n" + ChatColor.YELLOW + "s" + " " + ChatColor.GREEN + "u" + ChatColor.BLUE + "n" + ChatColor.LIGHT_PURPLE + "b" + ChatColor.RED + "a" + ChatColor.GOLD + "n" + " " + ChatColor.YELLOW + "k" + ChatColor.GREEN + "a" + ChatColor.BLUE + "d" + ChatColor.LIGHT_PURPLE + "a" + ChatColor.RED + "p" + ChatColor. GOLD + "u" + ChatColor.YELLOW + "n" + ChatColor.GREEN + "n" + ChatColor.BLUE + "y" + ChatColor.LIGHT_PURPLE + "!");
-
+	
 		instance = this;
 		functionHandler = new Gunvarrel();
 		
@@ -140,8 +141,8 @@ public class FriendlyWall extends JavaPlugin {
 		functionHandler.loadFunction(MinecartLogger.class, true, "minecartlogwipe");
 		
 		//This is buggy as hell.
-		//functionHandler.loadFunction(NPCs.class, true, "newnpc", "removeallnpcs", "removenpc", "telenpc", "diemonster", "addquote", "remquote", "listquotes", "vnstyle");
-		
+		functionHandler.loadFunction(NPCsV2.class, true, "newnpc", "removeallnpcs", "removenpc", "telenpc", "diemonster", "npcquotes", "vnstyle");
+
 		if(!this.getDataFolder().exists()){
 			this.getDataFolder().mkdir();
 		}
@@ -153,8 +154,8 @@ public class FriendlyWall extends JavaPlugin {
 		//NPCs.killAllNPCs();
 		CommanderCirno.stopFunction();
 		//Remove all commands.
+		((NPCsV2)functionHandler.getFunction(NPCsV2.class)).unloadNPCs();
 		functionHandler.removeAll();
-		
 		instance = null;
 	}
 	

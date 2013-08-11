@@ -6,11 +6,9 @@ import java.net.URLConnection;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequencer;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
-import com.tenko.FriendlyWall;
 import com.tenko.functions.Moosic;
 
 public class MidiThread extends Thread {
@@ -25,7 +23,6 @@ public class MidiThread extends Thread {
 		this.url = theUrl;
 	}
 
-	@SuppressWarnings("resource")
 	@Override
 	public void run(){
 		try {

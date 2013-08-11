@@ -4,7 +4,7 @@ import java.net.URL;
 
 public class FriendlyClasses {
 	
-	private static ASMClassLoader loader = new ASMClassLoader(new URL[]{}, Thread.currentThread().getContextClassLoader());
+	private static ASMClassLoader loader = new ASMClassLoader(new URL[]{}, FriendlyClasses.class.getClassLoader());
 	
 	public static void loadClass(String s, byte[] b){
 		loader.addClass(s, b);
@@ -20,4 +20,8 @@ public class FriendlyClasses {
 		return null;
 	}
 	
+	public static ASMClassLoader getLoader(){
+		return loader;
+	}
+
 }
