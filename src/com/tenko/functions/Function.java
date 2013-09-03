@@ -3,58 +3,39 @@ package com.tenko.functions;
 import java.io.File;
 import java.util.ArrayList;
 
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.Listener;
 
 import com.tenko.FriendlyWall;
 import com.tenko.objs.TenkoCmd;
 
-//Lazy man's way of implementing two classes.
-public abstract class Function implements Listener, CommandExecutor {
+public abstract class Function implements Listener {
 
-	protected ArrayList<TenkoCmd> cmds = new ArrayList<TenkoCmd>();
-	protected FileConfiguration config;
-
-	public Function(String name, String configName){
-		config = YamlConfiguration.loadConfiguration(getFunctionFile(name, configName));
-	}
-
-	//Initalize nothing.
+	protected ArrayList<TenkoCmd> commands = new ArrayList<TenkoCmd>();
+	
 	public Function(){}
 
 	public static File getFunctionFile(String name, String yaml){
 		return new File(getFunctionDirectory(name), yaml + ".yml");
 	}
 
-	public static File getFunctionDirectory(String s){
-		File folder = new File(FriendlyWall.getPlugin().getDataFolder(), s);
+	public static File getFunctionDirectory(String name){		
+		File folder = new File(FriendlyWall.getPlugin().getDataFolder(), name);
 		if(!folder.exists()){
-			if(!folder.mkdir()){
-				System.out.println("wtf");
-			}
+			folder.mkdirs();
 		}
 		return folder;
 	}
 
-	@Override
-	public abstract boolean onCommand(CommandSender cs, Command c, String l, String[] args);
-
 	public void stopFunction(){
-		if(cmds != null){
-			if(cmds.size() > 0){
-				for(TenkoCmd cmd : cmds){
-					FriendlyWall.getRegister().unregisterCommand(cmd);
-				}
+		if(commands != null && commands.size() > 0){
+			for(TenkoCmd cmd : commands){
+				FriendlyWall.getCommandRegister().unregisterCommand(cmd);
 			}
 		}
 	}
-
-	public ArrayList<TenkoCmd> getCommands(){
-		return cmds;
+	
+	protected ArrayList<TenkoCmd> getCommands(){
+		return commands;
 	}
 
 }

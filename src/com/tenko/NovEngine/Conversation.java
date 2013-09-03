@@ -1,68 +1,83 @@
 package com.tenko.NovEngine;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
+import com.google.common.collect.Lists;
 import com.tenko.FriendlyWall;
-import com.tenko.NovEngine.optiontypes.Option;
-import com.tenko.asm.IMika;
+import com.tenko.npc.BaseNPC;
 
 public class Conversation {
-	
-	private Player plyr;
-	private IMika listener;
-	private ArrayList<Option> options;
-	
-	public Conversation(Player p, IMika mika, Option... initOpts){
-		this.plyr = p;
-		this.listener = mika;
-		this.options = new ArrayList<Option>(Arrays.asList(initOpts));
+
+	private Player refPlyr;
+	private BaseNPC npc;
+
+	//Actual options to actually show. Has missing options from allOptions.
+	private ArrayList<Option> actualOptions;
+
+	private boolean hasStarted = false;
+
+	public Conversation(Player p, BaseNPC npc){
+		this.refPlyr = p;
+		this.npc = npc;
+		
+		actualOptions = Lists.newArrayList();
 	}
-	
-	public Player getPlayer(){
-		return plyr;
+
+	private void testOptions(){
+		for(Option o : npc.getOptions()){
+			if(o.shouldShow(refPlyr)){
+				actualOptions.add(o);
+			}
+		}
 	}
-	
-	public IMika getListener(){
-		return listener;
+
+	public void endConversation(){
+		refPlyr.removeMetadata("VNconversation", FriendlyWall.getPlugin());
+		actualOptions.clear();
+		hasStarted = false;
 	}
-	
+
 	public void startConversation(){
-		for(int i=0; i < options.size(); i++){
-			plyr.sendMessage(ChatColor.BLUE + (i + ": " + options.get(i).getQuestion()));
+		testOptions();
+		
+		refPlyr.sendMessage(ChatColor.RED + "You are now chatting with " + npc.getName() + "!");
+		refPlyr.sendMessage(ChatColor.RED + "Chat the number that corresponds with what you want to say.");
+
+		hasStarted = true;
+		for(int i=0; i < actualOptions.size(); i++){
+			refPlyr.sendMessage((ChatColor.BLUE + (i + ": " + actualOptions.get(i).getQuestion())).replace("%plyr%", refPlyr.getName()).replace("%ai%", npc.getName()));
 		}
 	}
 	
-	public void addOption(Option o){
-		options.add(o);
+	public Player getPlayer(){
+		return refPlyr;
 	}
 	
-	public void addOptions(Option... o){
-		options.addAll(Arrays.asList(o));
+	public BaseNPC getNPC(){
+		return npc;
 	}
-	
-	public void removeOption(Option o){
-		options.remove(o);
+
+	public int optionListSize(){
+		if(hasStarted){
+			return actualOptions.size();
+		} else {
+			throw new IllegalStateException("The conversation hasn't started yet!");
+		}
 	}
-	
+
+	public Option getOption(int index){
+		if(hasStarted){
+			return actualOptions.get(index);
+		} else {
+			throw new IllegalStateException("The conversation hasn't started yet!");
+		}	
+	}
+
 	public void clearOptions(){
-		options.clear();
+		actualOptions.clear();
 	}
-	
-	public ArrayList<Option> getOptions(){
-		return options;
-	}
-	
-	public void endConversation(){
-		plyr.removeMetadata("chattingNpc", FriendlyWall.getPlugin());
-		listener.setTalking(false);
-		this.plyr = null;
-		this.listener = null;
-		options.clear();
-		options = null;
-	}
-	
+
 }

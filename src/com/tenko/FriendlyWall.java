@@ -1,21 +1,28 @@
 package com.tenko;
 
+import java.lang.reflect.Field;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.command.Command;
+import org.bukkit.command.PluginCommand;
+import org.bukkit.command.SimpleCommandMap;
+import org.bukkit.permissions.Permission;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.SimplePluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import sun.misc.Unsafe;
+
 import com.tenko.Gunvarrel.CommandRegister;
 import com.tenko.Gunvarrel.Gunvarrel;
-import com.tenko.cmdexe.CommanderCirno;
-import com.tenko.functions.Chairs;
-import com.tenko.functions.GCForce;
-import com.tenko.functions.MinecartLogger;
-import com.tenko.functions.Moosic;
-import com.tenko.functions.NPCsV2;
-import com.tenko.functions.NazrinBlocks;
-import com.tenko.functions.listen.IPBan;
-import com.tenko.functions.listen.NoMobs;
-import com.tenko.functions.listen.PassiveBeds;
-import com.tenko.functions.listen.VineStunner;
+import com.tenko.functions.*;
+import com.tenko.functions.listeners.*;
+import com.tenko.rootcmds.CommanderCirno;
 
 /*
  * Log entry when I feel like it:
@@ -89,6 +96,29 @@ import com.tenko.functions.listen.VineStunner;
  * 	"K-ON may not be everybody's cup of tea, but for the girls of Sakuragaoka High
  *   School, it is their tea party." - Veronin.
  *  My god that quote.
+ *  
+ * 8/17/13:
+ * 	Asdf, bored. Sick. Runny nose. Added jails and offline teleporting and things.
+ * 	Fixed some bugs, idk. I got free games for drawing a picture of Stephen Hawking
+ * 	on a VOCALOID box... I'm probably going to get shot at by Hawking fans.
+ * 
+ * 8/28/13:
+ * 	"The Great Refactor".
+ * 
+ * 9/1/13:
+ * 	Still "The Great Refactor"'ing this entire plugin. Now that I really look deep
+ * 	into the source, holy crap, this plugin is like... all my work shoved into a
+ * 	little box. No, that's what exactly what it is. Anyways, Mou ikkai mou ikkai~
+ *  Watashi wa kyou mo korogarimasu! Ehehe. Still listening Akiaken's awesome
+ *  cover. I started sophomore year, none of my teachers are particularlly bad.
+ *  My Algebra II teacher assiagns a lot of homework, but I'm sure it's for our own
+ *  good. YC, amazingly, has only crafted twice due to this plugin. Oopse. I wrote
+ *  crafted. I meant crashed. Currently, this plugin has over 2 thousand lines.
+ *  Most of it was written by hand. NPC's are becoming more and more diverse.
+ *  Currently slowing the entire network to a crawl; my Guilty Crown must be
+ *  downloaded. Ha. Take that internet. Make sure you skyrocket our bills. Hahaha.
+ *  I should write more of these later; looking through them makes me giggle like
+ *  a schoolgirl.
  * 
  * 9/9/99:
  * 	I accidentally wipe my entire GitHub repository and run 9 magnets
@@ -101,74 +131,163 @@ import com.tenko.functions.listen.VineStunner;
  * 	Good game, guys. 
  * 	We tried.
  */
-
 public class FriendlyWall extends JavaPlugin {
-	
-	private static String packageName = Bukkit.getServer().getClass().getPackage().getName();
-	private static String version = packageName.substring(packageName.lastIndexOf(".") + 1);
+
+	private static final String CRAFTBUKKIT_VERSION = Bukkit.getServer().getClass().getPackage().getName().substring(Bukkit.getServer().getClass().getPackage().getName().lastIndexOf(".") + 1);
 	private static FriendlyWall instance;
+	private static Gunvarrel functionLoader;
 	
-	private static Gunvarrel functionHandler;
-	
-	public static int exceptionCount = 0;
+	public static int ExceptionCount;
+
+	//At this point, I'm going insane.
+	private static Unsafe theUnsafe;
 	
 	@Override
-	public void onEnable(){	
+	public void onEnable(){
+		instance = this;
+		Bukkit.getPluginManager().getPermissions().remove(new Permission("fw.bypassminecart"));
+		
 		Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "O" + ChatColor.GOLD + "p" + ChatColor.YELLOW + "e" + ChatColor.GREEN + "r" + ChatColor.BLUE + "a" + ChatColor.LIGHT_PURPLE + "t" + ChatColor.RED + "i" + ChatColor.GOLD + "o" + ChatColor.YELLOW + "n" + " " + ChatColor.GREEN + "F" + ChatColor.BLUE + "r" + ChatColor.LIGHT_PURPLE + "i" + ChatColor.RED + "e" + ChatColor.GOLD + "n" + ChatColor.YELLOW + "d" + ChatColor.GREEN + "l" + ChatColor.BLUE + "y" + ChatColor.LIGHT_PURPLE + "W" + ChatColor.RED + "a" + ChatColor.GOLD + "l" + ChatColor.YELLOW + "l" + ChatColor.GREEN + ":" + " " + ChatColor.BLUE + "C" + ChatColor.LIGHT_PURPLE + "o" + ChatColor.RED + "m" + ChatColor.GOLD + "m" + ChatColor.YELLOW + "e" + ChatColor.GREEN + "n" + ChatColor.BLUE + "c" + ChatColor.LIGHT_PURPLE + "e" + ChatColor.RED + "!");
 		Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "R" + ChatColor.GOLD + "a" + ChatColor.YELLOW + "i" + ChatColor.GREEN + "n" + ChatColor.BLUE + "b" + ChatColor.LIGHT_PURPLE + "o" + ChatColor.RED + "w" + ChatColor.GOLD + "s" + " " + ChatColor.YELLOW + "m" + ChatColor.GREEN + "e" + ChatColor.BLUE + "a" + ChatColor.LIGHT_PURPLE + "n" + ChatColor.RED + "s" + " " + ChatColor.GOLD + "f" + ChatColor.YELLOW + "r" + ChatColor.GREEN + "i" + ChatColor.BLUE + "e" + ChatColor.LIGHT_PURPLE + "n" + ChatColor.RED + "d" + ChatColor.GOLD + "s" + ChatColor.YELLOW + "h" + ChatColor.GREEN + "i" + ChatColor.BLUE + "p" + " " + ChatColor.LIGHT_PURPLE + "w" + ChatColor.RED + "h" + ChatColor.GOLD + "i" + ChatColor.YELLOW + "c" + ChatColor.GREEN + "h" + " " + ChatColor.BLUE + "m" + ChatColor.LIGHT_PURPLE + "e" + ChatColor.RED + "a" + ChatColor.GOLD + "n" + ChatColor.YELLOW + "s" + " " + ChatColor.GREEN + "u" + ChatColor.BLUE + "n" + ChatColor.LIGHT_PURPLE + "b" + ChatColor.RED + "a" + ChatColor.GOLD + "n" + " " + ChatColor.YELLOW + "k" + ChatColor.GREEN + "a" + ChatColor.BLUE + "d" + ChatColor.LIGHT_PURPLE + "a" + ChatColor.RED + "p" + ChatColor. GOLD + "u" + ChatColor.YELLOW + "n" + ChatColor.GREEN + "n" + ChatColor.BLUE + "y" + ChatColor.LIGHT_PURPLE + "!");
-	
-		instance = this;
-		functionHandler = new Gunvarrel();
-		
-		//TODO: Create dynamic class using ASM.
-		//		Fix up other things, still not done.
-		
-		CommanderCirno.startFunction();
-		//These don't have any commands, so why bother.
-		functionHandler.loadFunction(Chairs.class, true);
-		functionHandler.loadFunction(NazrinBlocks.class, true);
-		functionHandler.loadFunction(Moosic.class, true);
-		
-		//Listeners register their command within their own superclass.
-		functionHandler.loadFunction(IPBan.class, true);
-		functionHandler.loadFunction(NoMobs.class, true);
-		functionHandler.loadFunction(PassiveBeds.class, true);
-		functionHandler.loadFunction(VineStunner.class, true);
-		
-		//These actually have commands.
-		functionHandler.loadFunction(GCForce.class, false, "gcforce", "hcdebugmatch", "dumpallthreads", "dumptenkothreads", "atmptstoptenkothread");
-		//This is the only exception to the whole "Listeners" thing because this has different commands.
-		functionHandler.loadFunction(MinecartLogger.class, true, "minecartlogwipe");
-		
-		//This is buggy as hell.
-		functionHandler.loadFunction(NPCsV2.class, true, "newnpc", "removeallnpcs", "removenpc", "telenpc", "diemonster", "npcquotes", "vnstyle");
 
-		if(!this.getDataFolder().exists()){
-			this.getDataFolder().mkdir();
+		functionLoader = Gunvarrel.createGunvarrel();
+
+		functionLoader.loadFunction(CommanderCirno.class, false);
+		functionLoader.loadFunction(ExampleFunction.class, false);
+		
+		functionLoader.loadFunction(GCForce.class, false);
+		functionLoader.loadFunction(Jail.class, true);
+		functionLoader.loadFunction(LightMap.class, false);
+		functionLoader.loadFunction(MinecartLogger.class, true);
+		functionLoader.loadFunction(NazrinBlocks.class, true);
+		functionLoader.loadFunction(NPCs.class, true);
+		functionLoader.loadFunction(OfflineTP.class, true);
+
+		functionLoader.loadListener(IPBan.class);
+		functionLoader.loadListener(NoMobs.class);
+		functionLoader.loadListener(PassiveBeds.class);
+		functionLoader.loadListener(VineStunner.class);
+
+		try {
+			Field unsafeField = Unsafe.class.getDeclaredField("theUnsafe");
+			unsafeField.setAccessible(true);
+			theUnsafe = (Unsafe)unsafeField.get(null);
+		} catch (Exception e){
+			System.out.println("Couldn't obtain an unsafe instance. Ignore this, this is purely for debugging.");
 		}
 		
+		Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new Runnable(){
+			@Override
+			public void run(){
+				if(ExceptionCount > 20){
+					Bukkit.broadcastMessage(ChatColor.RED + "A plugin crashed!");
+					unloadPlugin(FriendlyWall.getPlugin());
+				}
+			}
+		}, 20, 20);
 	}
-	
+
 	@Override
 	public void onDisable(){
-		//NPCs.killAllNPCs();
-		CommanderCirno.stopFunction();
-		//Remove all commands.
-		((NPCsV2)functionHandler.getFunction(NPCsV2.class)).unloadNPCs();
-		functionHandler.removeAll();
+		//i r teh progrummer
+		((NPCs)functionLoader.getFunction(NPCs.class)).endFunction();
+		
+		
+		//Remove all references.
 		instance = null;
+		functionLoader = null;
+		//Garbage collect.
+		System.gc();
 	}
 	
-	public static String getCraftVersion(){
-		return version;
+	public static Unsafe getUnsafe(){
+		return theUnsafe;
+	}
+
+	public static Gunvarrel getGunvarrel(){
+		return functionLoader;
+	}
+
+	public static CommandRegister getCommandRegister(){
+		return functionLoader.getCommandRegister();
 	}
 
 	public static FriendlyWall getPlugin(){
 		return instance;
 	}
-	
-	public static CommandRegister getRegister(){
-		return functionHandler.getRegister();
+
+	public static String getCraftBukkitVersion(){
+		return CRAFTBUKKIT_VERSION;
 	}
 	
+	public boolean unloadPlugin(Plugin pl){
+		try {
+			SimplePluginManager man = (SimplePluginManager)Bukkit.getServer().getPluginManager();
+
+			if(man == null){
+				Bukkit.broadcastMessage(ChatColor.RED + "Plugin " + ChatColor.BOLD + "majorly" + ChatColor.RESET + ChatColor.RED + " crashed. Technical Info: \"man was null\".");
+				return false;
+			}
+
+			Field pluginListF = SimplePluginManager.class.getDeclaredField("plugins");
+			pluginListF.setAccessible(true);
+
+			Field lookupNamesF = SimplePluginManager.class.getDeclaredField("lookupNames");
+			lookupNamesF.setAccessible(true);
+
+			Field commandMapF = SimplePluginManager.class.getDeclaredField("commandMap");
+			commandMapF.setAccessible(true);
+
+			List<Plugin> pluginList = (List<Plugin>)pluginListF.get(man);
+			Map<String, Plugin> lookupNames = (Map<String, Plugin>)lookupNamesF.get(man);
+			SimpleCommandMap cmdMap = (SimpleCommandMap)commandMapF.get(man);
+
+			if(cmdMap == null){
+				Bukkit.broadcastMessage(ChatColor.RED + "Plugin " + ChatColor.BOLD + "majorly" + ChatColor.RESET + ChatColor.RED + " crashed. Technical info: cmdMap was null somehow!");
+				return false;
+			}
+
+			Field knownCommandsF = cmdMap.getClass().getDeclaredField("knownCommands");
+			knownCommandsF.setAccessible(true);
+			Map<String, Command> knownCommands = (Map<String, Command>)knownCommandsF.get(cmdMap);
+
+			for(Plugin p : man.getPlugins()){
+				if(p.getDescription().getName().equalsIgnoreCase(pl.getName())){
+					man.disablePlugin(p);
+
+					if(pluginList != null && pluginList.contains(pl)){
+						System.out.println("Found pluginList. This is good.");
+						pluginList.remove(pl);
+					} else {
+						System.out.println("Maybe a new plugin?");
+					}
+
+					if(lookupNames != null && lookupNames.containsKey(pl.getName())){
+						System.out.println("Found lookupNames. This is good.");
+						lookupNames.remove(pl.getName());
+					}
+
+					Iterator<Entry<String, Command>> it = knownCommands.entrySet().iterator();
+					while(it.hasNext()){
+						Entry<String, Command> e = it.next();
+						if(e.getValue() instanceof PluginCommand){
+							PluginCommand cmd = (PluginCommand)e.getValue();
+
+							if(cmd.getPlugin() == p){
+								cmd.unregister(cmdMap);
+								it.remove();
+							}
+						}
+					}
+				}
+			}
+		} catch (Exception e){
+			Bukkit.broadcastMessage(ChatColor.RED + "Plugin " + ChatColor.BOLD + "majorly" + ChatColor.RESET + ChatColor.RED + " crashed. Technical info: " + e);
+			return false;
+		}
+
+		Bukkit.broadcastMessage(ChatColor.BLUE + "Successfully unloaded plugin!");
+		return true;
+	}
+
 }

@@ -1,76 +1,87 @@
 package com.tenko.Gunvarrel;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
-
 import org.bukkit.Bukkit;
-import org.bukkit.event.HandlerList;
+import org.bukkit.ChatColor;
 
+import com.google.common.collect.Lists;
 import com.tenko.FriendlyWall;
+import com.tenko.annotations.FunctionCommand;
 import com.tenko.functions.Function;
+import com.tenko.functions.listeners.TListener;
+import com.tenko.objs.TenkoCmd;
 
 public class Gunvarrel {
 
-	private final ArrayList<Function> functions;
-	private CommandRegister cr;
-	
-	public Gunvarrel(){
-		this.functions = new ArrayList<Function>();
-		cr = new CommandRegister();
+	private ArrayList<Function> loadedFunctions;
+	private ArrayList<TListener> loadedListeners;
+	private CommandRegister register;
+
+	private static boolean created = false;
+
+	private Gunvarrel(){
+		loadedFunctions = Lists.newArrayList();
+		loadedListeners = Lists.newArrayList();
+		register = new CommandRegister();
 	}
 
-	public void loadFunction(Class<? extends Function> c, boolean isListener, String... commands){
-		try {
-			Function newFunction = c.newInstance();
-			functions.add(newFunction);
-			
-			//Only register the ones we need to register. 
-			//It would be pointless to register a listener for a class that doesn't even use it.
-			if(isListener){
-				Bukkit.getPluginManager().registerEvents(newFunction, FriendlyWall.getPlugin());
-			}
-
-			if(commands != null && commands.length > 0){
-				for(String cmd : commands){
-					newFunction.getCommands().add(cr.registerCommand(cmd, newFunction));
-				}
-			}
-		} catch (InstantiationException | IllegalAccessException e) {
-			e.printStackTrace();
+	public static Gunvarrel createGunvarrel(){
+		if(Gunvarrel.created){
+			throw new UnsupportedOperationException("Gunvarrel is already created!");
 		}
+
+		Gunvarrel.created = true;
+		return new Gunvarrel();
 	}
 
-	public void loadFunction(Class<? extends Function> c, String... commands){
-		loadFunction(c, false, commands);
-	}
-	
-	public void loadFunction(Class<? extends Function> c){
-		loadFunction(c, false, (String[])null);
-	}
-	
-	public void loadFunction(Class<? extends Function> c, boolean isListener){
-		loadFunction(c, isListener, (String[])null);
-	}
-	
-	public CommandRegister getRegister(){
-		return cr;
+	public CommandRegister getCommandRegister(){
+		return register;
 	}
 
-	public Function getFunction(Class<? extends Function> c){
-		for(Function f : functions){
-			if(f.getClass() == c){
+	public Function getFunction(Class<?> function){
+		for(Function f : loadedFunctions){
+			if(function == f.getClass()){
 				return f;
 			}
 		}
 		return null;
 	}
-	
-	public void removeAll(){
-		for(Function f : functions){
-			f.stopFunction();
-			try { for(HandlerList l : HandlerList.getHandlerLists()){
-				l.unregister(f);
-			}} catch (Exception e){}
+
+	public void loadFunction(Class<? extends Function> c, boolean isListener){
+		try {
+			Function newFunction = c.newInstance();
+
+			if(isListener){
+				Bukkit.getPluginManager().registerEvents(newFunction, FriendlyWall.getPlugin());
+			}
+
+			for(Method m : c.getMethods()){
+				if(m.isAnnotationPresent(FunctionCommand.class)){
+					FunctionCommand anno = m.getAnnotation(FunctionCommand.class);
+					TenkoCmd command = new TenkoCmd(m.getName());
+					command.setUsage(ChatColor.RED + "Usage: " + anno.usage());
+					command.setExecutor(new MethodExecutor(newFunction, m));
+
+					register.registerCommand(command);
+				}
+			}
+
+			loadedFunctions.add(newFunction);
+		} catch (Exception e){
+			e.printStackTrace();
 		}
 	}
-	
+
+	public void loadListener(Class<? extends TListener> c){
+		try {
+			TListener newListener = c.newInstance();
+			Bukkit.getPluginManager().registerEvents(newListener, FriendlyWall.getPlugin());
+			newListener.registerCommands();
+			loadedListeners.add(newListener);
+		} catch (Exception e){
+			e.printStackTrace();
+		}
+	}
+
 }
