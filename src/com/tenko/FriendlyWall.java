@@ -26,11 +26,11 @@ import com.tenko.rootcmds.CommanderCirno;
 
 /*
  * Log entry when I feel like it:
- * Unknown: HermesIP was started.
+ * 5/5/12: HermesIP was started.
  * 
- * Unknown: HermesIP's name changed to FriendlyWall.
+ * 5/9/12: HermesIP's name changed to FriendlyWall.
  * 
- * Unknown: FriendlyWall became a swiss army knife.
+ * 6/13/12: FriendlyWall became a swiss army knife.
  * 
  * 6/13/13: 
  * 	Added up all the lines of FW; apperently, it's 666 lines.
@@ -119,6 +119,17 @@ import com.tenko.rootcmds.CommanderCirno;
  *  downloaded. Ha. Take that internet. Make sure you skyrocket our bills. Hahaha.
  *  I should write more of these later; looking through them makes me giggle like
  *  a schoolgirl.
+ *  
+ * 9/2/13:
+ * 	Finished refactoring. Remi told me to keep writing these things. 87 files were
+ * 	changed. I don't want to count the amount of lies this plugin is because well,
+ * 	I would have to be insane. 9/9 is almost approching, and it will be the -86 
+ * 	anniversary of me sending the world to the stone age. Nothing in real life
+ * 	exciting has happend. Reality is a crappy game. I want my money back. I also
+ * 	finally found the dates of when this silly little project started. They're at
+ * 	the top if you need them. Hah. This plugin came from just a little small IP
+ * 	banning thing. Which reminds me, I need to change the readme for this github
+ * 	repos...
  * 
  * 9/9/99:
  * 	I accidentally wipe my entire GitHub repository and run 9 magnets
