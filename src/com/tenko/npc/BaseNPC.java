@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import net.minecraft.server.v1_6_R2.Entity;
+import net.minecraft.server.v1_6_R2.EntityInsentient;
+import net.minecraft.server.v1_6_R2.EntityLiving;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -15,9 +17,12 @@ import org.bukkit.util.Vector;
 
 import com.google.common.collect.Lists;
 import com.tenko.NovEngine.Option;
+import com.tenko.npc.controllers.NPCControllerJump;
 
 //Ooo... Strictfp...
 public abstract strictfp class BaseNPC extends CraftEntity {
+	
+	public static EntityInsentient SCAPEGOAT = new EntityInsentient(null){};
 	
 	public BaseNPC(CraftServer server, Entity entity){
 		super(server, entity);
@@ -32,7 +37,6 @@ public abstract strictfp class BaseNPC extends CraftEntity {
 	//private PathfinderGoalSelector goals;
 	private Random random = new Random();
 	
-	public abstract Entity getNMSEntity();
 	public abstract void lookAt(Location loc);
 	public abstract void die();
 	public abstract void teleportTo(Location loc);
@@ -96,8 +100,16 @@ public abstract strictfp class BaseNPC extends CraftEntity {
 		return 0.78539 * var - var * (Math.abs(var) - 1) * (0.2447 + 0.0663*Math.abs(var));
 	}
 	
+	public NPCControllerJump getJumpController(){
+		return null;
+	}
+	
 	public Random getRandom(){
 		return random;
+	}
+	
+	public EntityLiving getLivingHandle(){
+		return (EntityLiving)getHandle();
 	}
 	
 }

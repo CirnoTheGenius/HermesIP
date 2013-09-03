@@ -1,6 +1,5 @@
 package com.tenko.npc;
 
-import net.minecraft.server.v1_6_R2.Entity;
 import net.minecraft.server.v1_6_R2.EntityPlayer;
 import net.minecraft.server.v1_6_R2.EnumGamemode;
 import net.minecraft.server.v1_6_R2.MinecraftServer;
@@ -78,11 +77,6 @@ public class CraftMika extends BaseNPC {
 	@Override
 	public EntityType getType() {
 		return EntityType.PLAYER;
-	}
-
-	@Override
-	public Entity getNMSEntity() {
-		return entity;
 	}
 	
 }

@@ -3,6 +3,8 @@ package com.tenko.Gunvarrel;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -53,7 +55,7 @@ public class MethodExecutor implements CommandExecutor {
 			cs.sendMessage(ChatColor.RED + "[Error] Encountered IllegalArgumentException. Check if ref and functionMethod were null?");
 		} catch (InvocationTargetException e){
 			cs.sendMessage(ChatColor.RED + "[Error] Encountered InvocationTargetException. Sounds like you told Remi to do something.");
-			e.printStackTrace();
+			Bukkit.getPlayer("Hinanawi__Tenshi").sendMessage(ExceptionUtils.getStackTrace(ExceptionUtils.getRootCause(e.getTargetException())));
 		}
 		return false;
 	}
